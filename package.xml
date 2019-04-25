@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package>
+  <name>qt_monitoring</name>
+  <version>0.0.1</version>
+  <description>Monitoring for humanoid league based on QT</description>
+
+  <maintainer email="lhofer@labri.fr">Ludovic Hofer</maintainer>
+
+  <license>LGPLv3</license>
+
+  <author email="lhofer@labri.fr">Ludovic Hofer</author>
+  <author email="lucie.mathe@etu.u-bordeaux.fr">Lucie Mathé</author>
+  <author email="escure.f@gmail.com">Florian Escure</author>
+  <author email="lucie.chasan@etu.u-bordeaux.fr">Lucie Chasan</author>
+  <author email="montero.eliott@gmail.com">Eliott Montero</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>hl_monitoring</build_depend>
+
+  <run_depend>hl_monitoring</run_depend>
+
+</package>
