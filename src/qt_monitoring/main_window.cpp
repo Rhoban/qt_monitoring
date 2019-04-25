@@ -4,8 +4,6 @@
 
 #include <hl_communication/utils.h>
 
-#include <opencv2/imgproc.hpp>
-
 #include <fstream>
 #include <iostream>
 
@@ -15,8 +13,12 @@ using namespace hl_monitoring;
 
 namespace qt_monitoring
 {
-MainWindow::MainWindow() : active_source("webcam"), now(0), dt(30 * 1000), old_slider_value(0)
+MainWindow::MainWindow(const std::string& manager_path, const std::string& field_path)
+  : now(0), dt(30 * 1000), old_slider_value(0)
 {
+  field.loadFile(field_path);
+  manager.loadConfig(manager_path);
+
   setWindowTitle(tr("QTMonitor"));
 
   zoneCentral = new QWidget;
@@ -58,11 +60,12 @@ MainWindow::MainWindow() : active_source("webcam"), now(0), dt(30 * 1000), old_s
   playing = false;
   speed_ratio = 1;
 
-  // TODO: add as parameters
-  field.loadFile("eirlab.json");
-  manager.loadConfig("replay.json");
-
-  updateSource();
+  std::set<std::string> sources = manager.getImageProvidersNames();
+  if (sources.size() > 0)
+  {
+    active_source = *(sources.begin());
+    updateSource();
+  }
   update();
 
   timer = new QTimer(this);
@@ -140,29 +143,49 @@ void MainWindow::updateManager()
 void MainWindow::updateTeams()
 {
   std::map<uint32_t, int> index_by_team_id;
-  if (status.gc_message.teams_size() != 2)
+  int nb_teams = status.gc_message.teams_size();
+  bool has_gc_message = nb_teams != 0;
+  if (has_gc_message && nb_teams != 2)
   {
     throw std::logic_error(HL_DEBUG + "Invalid number of teams in gc_message");
   }
-  for (size_t idx = 0; idx < 2; idx++)
+  if (has_gc_message)
   {
-    const GCTeamMsg& team_msg = status.gc_message.teams(idx);
-    int team_id = team_msg.team_number();
-    index_by_team_id[team_id] = idx;
-    teams[idx]->updateTeamData("Team " + std::to_string(team_id), team_msg.score());
+    for (size_t idx = 0; idx < 2; idx++)
+    {
+      const GCTeamMsg& team_msg = status.gc_message.teams(idx);
+      int team_id = team_msg.team_number();
+      index_by_team_id[team_id] = idx;
+      teams[idx]->updateTeamData("Team " + std::to_string(team_id), team_msg.score());
+    }
   }
 
-  std::map<uint32_t, std::vector<RobotMsg>> messages_by_team = status.getRobotsByTeam();
-  for (const auto& entry : messages_by_team)
+  int default_team_idx = 0;
+  std::map<uint32_t, std::vector<RobotMsg>> robots_by_team = status.getRobotsByTeam();
+  if (robots_by_team.size() > 2)
+  {
+    throw std::logic_error("Too many teams in GC message");
+  }
+  for (const auto& entry : robots_by_team)
   {
     uint32_t team_id = entry.first;
-    if (index_by_team_id.count(team_id) == 0)
+
+    int team_idx = default_team_idx;
+    if (has_gc_message)
     {
-      throw std::logic_error(HL_DEBUG + "Unknown index for team " + std::to_string(team_id));
+      if (index_by_team_id.count(team_id) == 0)
+      {
+        throw std::logic_error(HL_DEBUG + "Unknown index for team " + std::to_string(team_id));
+      }
+      team_idx = index_by_team_id[team_id];
     }
-    int team_idx = index_by_team_id[team_id];
+    else
+    {
+      teams[team_idx]->updateTeamData("Team " + std::to_string(team_id), 0);
+    }
     // TODO: store teams in a .json file
     teams[team_idx]->treatMessages(entry.second);
+    default_team_idx++;
   }
 }
 
@@ -170,39 +193,42 @@ void MainWindow::updateAnnotations()
 {
   std::map<std::string, CalibratedImage> images_by_source = manager.getCalibratedImages(now);
 
-  if (images_by_source.count(active_source) == 0)
+  if (active_source != "")
   {
-    throw std::runtime_error(HL_DEBUG + " no source named '" + active_source + "'");
+    if (images_by_source.count(active_source) == 0)
+    {
+      throw std::runtime_error(HL_DEBUG + " no source named '" + active_source + "'");
+    }
+    const CalibratedImage& calibrated_img = images_by_source.at(active_source);
+    camera_img = cv::Mat(calibrated_img.getImg().clone());
+    if (calibrated_img.isFullySpecified())
+    {
+      const CameraMetaInformation& camera_information = calibrated_img.getCameraInformation();
+
+      team_drawer.drawNatural(camera_information, status, &camera_img);
+    }
   }
 
-  const CalibratedImage& calibrated_img = images_by_source.at(active_source);
-  camera_img = cv::Mat(calibrated_img.getImg().clone());
   top_view_img = cv::Mat(top_view_drawer.getImg(field));
-  if (calibrated_img.isFullySpecified())
-  {
-    const CameraMetaInformation& camera_information = calibrated_img.getCameraInformation();
-
-    team_drawer.drawNatural(camera_information, status, &camera_img);
-    team_drawer.drawTopView(field, top_view_drawer, status, &top_view_img);
-  }
-
-  cvtColor(camera_img, camera_img, CV_BGR2RGB);
-  cvtColor(top_view_img, top_view_img, CV_BGR2RGB);
+  team_drawer.drawTopView(field, top_view_drawer, status, &top_view_img);
 }
 
 void MainWindow::update()
 {
   // TODO: width + height as parameters/updated on release
-  int w = 600;
-  int h = 400;
+  int w = 1000;
+  int h = 800;
   updateTime();
   updateManager();
   top_view_drawer.setImgSize(cv::Size(w, h));
   updateTeams();
   updateAnnotations();
 
-  QPixmap camera_pixmap = QPixmap::fromImage(cvToQImage(camera_img));
-  label_video->setPixmap(camera_pixmap.scaled(w, h, Qt::KeepAspectRatio));
+  if (!camera_img.empty())
+  {
+    QPixmap camera_pixmap = QPixmap::fromImage(cvToQImage(camera_img));
+    label_video->setPixmap(camera_pixmap.scaled(w, h, Qt::KeepAspectRatio));
+  }
   QPixmap top_view_pixmap = QPixmap::fromImage(cvToQImage(top_view_img));
   label_top_view->setPixmap(top_view_pixmap.scaled(w, h, Qt::KeepAspectRatio));
 }

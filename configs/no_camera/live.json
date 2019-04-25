@@ -1,0 +1,9 @@
+{
+    "message_manager" : {
+        "ports" : [3838, 35009,35003]
+    },
+    "image_providers" : {
+    },
+    "msg_collection_path" : "messages.bin",
+    "live" : true
+}

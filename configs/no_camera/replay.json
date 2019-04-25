@@ -1,0 +1,22 @@
+{
+    "message_manager" : {
+        "file_path" : "messages.bin"
+    },
+    "image_providers" : {
+        "webcam" : {
+            "class_name" : "ReplayImageProvider",
+            "input_path" : "webcam.avi",
+            "meta_information_path" : "webcam.bin",
+            "intrinsic_path" : "intrinsic_logitech.bin",
+            "default_pose_path" : "webcam_pose.bin"
+        },
+        "ptgrey" : {
+            "class_name" : "ReplayImageProvider",
+            "input_path" : "ptgrey.avi",
+            "meta_information_path" : "ptgrey.bin",
+            "intrinsic_path" : "intrinsic_ptgrey.bin",
+            "default_pose_path" : "ptgrey_pose.bin"
+        }
+    },
+    "live" : false
+}

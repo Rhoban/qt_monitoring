@@ -23,7 +23,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  MainWindow();
+  MainWindow(const std::string& manager_path, const std::string& field_path);
 
 public slots:
   /**
