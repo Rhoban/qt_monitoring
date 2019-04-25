@@ -1,5 +1,7 @@
 #include "main_window.h"
 
+#include <qt_monitoring/utils.h>
+
 #include <hl_communication/utils.h>
 
 #include <opencv2/imgproc.hpp>
@@ -7,30 +9,26 @@
 #include <fstream>
 #include <iostream>
 
-#define CV_IMG_WIDTH 480
-#define CV_IMG_HEIGHT 640
-#define SPD_INTERVAL 30
-#define SPD_INTERVAL_FF 1
-#define SLIDER_INTERVAL 100.
-#define SECONDS_TO_US 1000000
-
 using namespace cv;
 using namespace hl_communication;
 using namespace hl_monitoring;
 
 namespace qt_monitoring
 {
-MainWindow::MainWindow() : active_source("webcam"), camera_img(nullptr), top_view_img(nullptr), dt(30 * 1000)
+MainWindow::MainWindow()
+  : active_source("webcam"), camera_img(nullptr), top_view_img(nullptr), now(0), dt(30 * 1000), old_slider_value(0)
 {
-  setWindowTitle(tr("INTERFACE"));
+  setWindowTitle(tr("QTMonitor"));
 
   zoneCentral = new QWidget;
   layout = new QGridLayout;
 
-  labelVideo = new QLabel();
-  labelVideo->setAlignment(Qt::AlignCenter);
-  labelVideo->setStyleSheet("QLabel { background-color : red}");
-  labelVideo->setScaledContents(true);
+  label_video = new QLabel();
+  label_video->setAlignment(Qt::AlignCenter);
+  label_video->setScaledContents(false);
+  label_top_view = new QLabel();
+  label_top_view->setAlignment(Qt::AlignCenter);
+  label_top_view->setScaledContents(false);
 
   slider_value_label = new QLabel(this);
   slider_value_label->setText("0");
@@ -43,7 +41,8 @@ MainWindow::MainWindow() : active_source("webcam"), camera_img(nullptr), top_vie
   connect(buttonFastForward, SIGNAL(released()), this, SLOT(clickFastForward()));
 
   // TODO: update positions
-  layout->addWidget(labelVideo, 1, 1, 5, 4);
+  layout->addWidget(label_video, 1, 1, 3, 4);
+  layout->addWidget(label_top_view, 4, 1, 3, 4);
   layout->addWidget(slider, 7, 1, 1, 4);
   layout->addWidget(slider_value_label, 8, 1, 1, 1);
   layout->addWidget(buttonPause, 8, 2, 1, 1);
@@ -80,6 +79,8 @@ void MainWindow::updateSource()
 
   // Slider has 1 sec step
   slider->setRange(0, (end_time - initial_time) / 1000000);
+
+  now = std::max(std::min(now, end_time), initial_time);
 }
 
 void MainWindow::updateTime()
@@ -154,18 +155,21 @@ void MainWindow::updateAnnotations()
   }
 
   cvtColor(*camera_img, *camera_img, CV_BGR2RGB);
-  this->labelVideo->setPixmap(QPixmap::fromImage(
-      QImage(camera_img->data, camera_img->cols, camera_img->rows, camera_img->step, QImage::Format_RGB888)));
 }
 
 void MainWindow::update()
 {
+  int w = 640;
+  int h = 480;
   updateTime();
   updateManager();
+  top_view_drawer.setImgSize(cv::Size(w,h));
   updateAnnotations();
 
-  labelVideo->setPixmap(QPixmap::fromImage(
-      QImage(camera_img->data, camera_img->cols, camera_img->rows, camera_img->step, QImage::Format_RGB888)));
+  QPixmap camera_pixmap = QPixmap::fromImage(cvToQImage(*camera_img));
+  label_video->setPixmap(camera_pixmap.scaled(w,h,Qt::KeepAspectRatio));
+  QPixmap top_view_pixmap = QPixmap::fromImage(cvToQImage(*top_view_img));
+  label_top_view->setPixmap(top_view_pixmap.scaled(w,h,Qt::KeepAspectRatio));
 }
 
 void MainWindow::clickPause()

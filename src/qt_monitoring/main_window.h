@@ -28,7 +28,7 @@ public slots:
    */
   void updateSource();
   /**
-   * Update of slider + 
+   * Update of slider + time properties
    */
   void updateTime();
   void updateManager();
@@ -48,7 +48,8 @@ private :
    */
   std::string active_source;
 
-  QLabel * labelVideo;
+  QLabel * label_video;
+  QLabel * label_top_view;
   cv::Mat * camera_img;
   cv::Mat * top_view_img;
 
