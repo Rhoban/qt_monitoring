@@ -40,7 +40,12 @@ MainWindow::MainWindow()
   connect(buttonPause, SIGNAL(released()), this, SLOT(clickPause()));
   connect(buttonFastForward, SIGNAL(released()), this, SLOT(clickFastForward()));
 
-  // TODO: update positions
+  teams.push_back(new TeamPanel());
+  teams.push_back(new TeamPanel());
+
+  // TODO: update positions and make it easier to read
+  layout->addWidget(teams[0], 1, 0, 7, 1);
+  layout->addWidget(teams[1], 1, 5, 7, 1);
   layout->addWidget(label_video, 1, 1, 3, 4);
   layout->addWidget(label_top_view, 4, 1, 3, 4);
   layout->addWidget(slider, 7, 1, 1, 4);
@@ -130,11 +135,39 @@ void MainWindow::updateManager()
   {
     manager.update();
   }
+  status = manager.getMessageManager().getStatus(now);
+}
+
+void MainWindow::updateTeams()
+{
+  std::map<uint32_t, int> index_by_team_id;
+  if (status.gc_message.teams_size() != 2)
+  {
+    throw std::logic_error(HL_DEBUG + "Invalid number of teams in gc_message");
+  }
+  for (size_t idx = 0; idx < 2; idx++)
+  {
+    const GCTeamMsg& team_msg = status.gc_message.teams(idx);
+    int team_id = team_msg.team_number();
+    index_by_team_id[team_id] = idx;
+    teams[idx]->updateTeamData("Team " + std::to_string(team_id), team_msg.score());
+  }
+  
+  std::map<uint32_t, std::vector<RobotMsg>> messages_by_team = status.getRobotsByTeam();
+  for (const auto& entry : messages_by_team)
+  {
+    uint32_t team_id = entry.first;
+    if (index_by_team_id.count(team_id) == 0) {
+      throw std::logic_error(HL_DEBUG + "Unknown index for team " + std::to_string(team_id));
+    }
+    int team_idx = index_by_team_id[team_id];
+    //TODO: store teams in a .json file
+    teams[team_idx]->treatMessages(entry.second);
+  }
 }
 
 void MainWindow::updateAnnotations()
 {
-  MessageManager::Status status = manager.getMessageManager().getStatus(now);
   std::map<std::string, CalibratedImage> images_by_source = manager.getCalibratedImages(now);
 
   if (images_by_source.count(active_source) == 0)
@@ -165,6 +198,7 @@ void MainWindow::update()
   updateTime();
   updateManager();
   top_view_drawer.setImgSize(cv::Size(w,h));
+  updateTeams();
   updateAnnotations();
 
   QPixmap camera_pixmap = QPixmap::fromImage(cvToQImage(*camera_img));

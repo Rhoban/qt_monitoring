@@ -1,5 +1,7 @@
 #pragma once
 
+#include <qt_monitoring/team_panel.h>
+
 #include <hl_communication/message_manager.h>
 #include <hl_monitoring/monitoring_manager.h>
 #include <hl_monitoring/top_view_drawer.h>
@@ -32,12 +34,14 @@ public slots:
    */
   void updateTime();
   void updateManager();
+  void updateTeams();
   void updateAnnotations();
   void update();
   void clickPause();
   void clickFastForward();
 
 private :
+  hl_communication::MessageManager::Status status;
   hl_monitoring::MonitoringManager manager;
   hl_monitoring::TopViewDrawer top_view_drawer;
   hl_monitoring::Field field;
@@ -84,6 +88,8 @@ private :
 
   bool playing;
   int speed_ratio;
+
+  std::vector<TeamPanel *> teams;
 
 protected:
   void resizeEvent(QResizeEvent *event) override;
