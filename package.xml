@@ -16,8 +16,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>hl_monitoring</build_depend>
+  <build_depend>hl_monitoring</build_depend><!-- rhoban/hl_monitoring -->
+  <build_depend>rhoban_team_play</build_depend><!-- rhoban/teamplay -->
 
   <run_depend>hl_monitoring</run_depend>
+  <run_depend>rhoban_team_play</run_depend>
 
 </package>
