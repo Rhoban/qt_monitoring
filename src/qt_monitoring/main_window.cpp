@@ -85,7 +85,6 @@ void MainWindow::updateSource()
 
 void MainWindow::updateTime()
 {
-  uint64_t total_duration = end_time - initial_time;
   // If slider has moved: update 'now' based on it
   if (slider->value() != old_slider_value)
   {
@@ -105,7 +104,7 @@ void MainWindow::updateTime()
   }
   old_slider_value = (now - initial_time) / (1000*1000);
   slider->setValue(old_slider_value);
-  char str[20];
+  char str[30];
   if (!manager.isLive() && now >= end_time && end_time != 0)
   {
     now = end_time;
@@ -155,12 +154,14 @@ void MainWindow::updateAnnotations()
   }
 
   cvtColor(*camera_img, *camera_img, CV_BGR2RGB);
+  cvtColor(*top_view_img, *top_view_img, CV_BGR2RGB);
 }
 
 void MainWindow::update()
 {
-  int w = 640;
-  int h = 480;
+  //TODO: width + height as parameters/updated on release
+  int w = 600;
+  int h = 400;
   updateTime();
   updateManager();
   top_view_drawer.setImgSize(cv::Size(w,h));
