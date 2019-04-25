@@ -14,9 +14,10 @@
 #include <QSlider>
 #include <QTimer>
 
+#include <memory>
+
 namespace qt_monitoring
 {
-
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -40,7 +41,7 @@ public slots:
   void clickPause();
   void clickFastForward();
 
-private :
+private:
   hl_communication::MessageManager::Status status;
   hl_monitoring::MonitoringManager manager;
   hl_monitoring::TopViewDrawer top_view_drawer;
@@ -52,12 +53,12 @@ private :
    */
   std::string active_source;
 
-  QLabel * label_video;
-  QLabel * label_top_view;
-  cv::Mat * camera_img;
-  cv::Mat * top_view_img;
+  QLabel* label_video;
+  QLabel* label_top_view;
+  cv::Mat camera_img;
+  cv::Mat top_view_img;
 
-  QTimer * timer;
+  QTimer* timer;
   /**
    * Current timestamp (micro-seconds)
    */
@@ -75,25 +76,24 @@ private :
    */
   uint64_t dt;
 
-  QWidget * zoneCentral;
-  QGridLayout * layout;
+  QWidget* zoneCentral;
+  QGridLayout* layout;
 
-  QPushButton * buttonAnnotationChoice;
-  QPushButton * buttonPause;
-  QPushButton * buttonFastForward;
+  QPushButton* buttonAnnotationChoice;
+  QPushButton* buttonPause;
+  QPushButton* buttonFastForward;
 
-  QSlider * slider;
-  QLabel * slider_value_label;
+  QSlider* slider;
+  QLabel* slider_value_label;
   int old_slider_value;
 
   bool playing;
   int speed_ratio;
 
-  std::vector<TeamPanel *> teams;
+  std::vector<TeamPanel*> teams;
 
 protected:
-  void resizeEvent(QResizeEvent *event) override;
-
+  void resizeEvent(QResizeEvent* event) override;
 };
 
-}
+}  // namespace qt_monitoring

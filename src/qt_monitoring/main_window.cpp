@@ -15,8 +15,7 @@ using namespace hl_monitoring;
 
 namespace qt_monitoring
 {
-MainWindow::MainWindow()
-  : active_source("webcam"), camera_img(nullptr), top_view_img(nullptr), now(0), dt(30 * 1000), old_slider_value(0)
+MainWindow::MainWindow() : active_source("webcam"), now(0), dt(30 * 1000), old_slider_value(0)
 {
   setWindowTitle(tr("QTMonitor"));
 
@@ -107,7 +106,7 @@ void MainWindow::updateTime()
       now += dt * speed_ratio;
     }
   }
-  old_slider_value = (now - initial_time) / (1000*1000);
+  old_slider_value = (now - initial_time) / (1000 * 1000);
   slider->setValue(old_slider_value);
   char str[30];
   if (!manager.isLive() && now >= end_time && end_time != 0)
@@ -152,16 +151,17 @@ void MainWindow::updateTeams()
     index_by_team_id[team_id] = idx;
     teams[idx]->updateTeamData("Team " + std::to_string(team_id), team_msg.score());
   }
-  
+
   std::map<uint32_t, std::vector<RobotMsg>> messages_by_team = status.getRobotsByTeam();
   for (const auto& entry : messages_by_team)
   {
     uint32_t team_id = entry.first;
-    if (index_by_team_id.count(team_id) == 0) {
+    if (index_by_team_id.count(team_id) == 0)
+    {
       throw std::logic_error(HL_DEBUG + "Unknown index for team " + std::to_string(team_id));
     }
     int team_idx = index_by_team_id[team_id];
-    //TODO: store teams in a .json file
+    // TODO: store teams in a .json file
     teams[team_idx]->treatMessages(entry.second);
   }
 }
@@ -176,35 +176,35 @@ void MainWindow::updateAnnotations()
   }
 
   const CalibratedImage& calibrated_img = images_by_source.at(active_source);
-  camera_img = new cv::Mat(calibrated_img.getImg().clone());
-  top_view_img = new cv::Mat(top_view_drawer.getImg(field));
+  camera_img = cv::Mat(calibrated_img.getImg().clone());
+  top_view_img = cv::Mat(top_view_drawer.getImg(field));
   if (calibrated_img.isFullySpecified())
   {
     const CameraMetaInformation& camera_information = calibrated_img.getCameraInformation();
 
-    team_drawer.drawNatural(camera_information, status, camera_img);
-    team_drawer.drawTopView(field, top_view_drawer, status, top_view_img);
+    team_drawer.drawNatural(camera_information, status, &camera_img);
+    team_drawer.drawTopView(field, top_view_drawer, status, &top_view_img);
   }
 
-  cvtColor(*camera_img, *camera_img, CV_BGR2RGB);
-  cvtColor(*top_view_img, *top_view_img, CV_BGR2RGB);
+  cvtColor(camera_img, camera_img, CV_BGR2RGB);
+  cvtColor(top_view_img, top_view_img, CV_BGR2RGB);
 }
 
 void MainWindow::update()
 {
-  //TODO: width + height as parameters/updated on release
+  // TODO: width + height as parameters/updated on release
   int w = 600;
   int h = 400;
   updateTime();
   updateManager();
-  top_view_drawer.setImgSize(cv::Size(w,h));
+  top_view_drawer.setImgSize(cv::Size(w, h));
   updateTeams();
   updateAnnotations();
 
-  QPixmap camera_pixmap = QPixmap::fromImage(cvToQImage(*camera_img));
-  label_video->setPixmap(camera_pixmap.scaled(w,h,Qt::KeepAspectRatio));
-  QPixmap top_view_pixmap = QPixmap::fromImage(cvToQImage(*top_view_img));
-  label_top_view->setPixmap(top_view_pixmap.scaled(w,h,Qt::KeepAspectRatio));
+  QPixmap camera_pixmap = QPixmap::fromImage(cvToQImage(camera_img));
+  label_video->setPixmap(camera_pixmap.scaled(w, h, Qt::KeepAspectRatio));
+  QPixmap top_view_pixmap = QPixmap::fromImage(cvToQImage(top_view_img));
+  label_top_view->setPixmap(top_view_pixmap.scaled(w, h, Qt::KeepAspectRatio));
 }
 
 void MainWindow::clickPause()

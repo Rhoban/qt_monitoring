@@ -4,16 +4,15 @@ using namespace hl_communication;
 
 namespace qt_monitoring
 {
-
 TeamPanel::TeamPanel() : team_name("team_name"), score(0)
 {
   internal_layout = new QVBoxLayout();
   team_label = new QLabel();
-  team_label->setFont(QFont("Arial",18,3,false));
+  team_label->setFont(QFont("Arial", 18, 3, false));
   team_label->setAlignment(Qt::AlignCenter | Qt::AlignTop);
   internal_layout->addWidget(team_label);
   internal_layout->setAlignment(Qt::AlignCenter | Qt::AlignTop);
-  
+
   updateTeamLabel();
   setNbActiveRobots(0);
 
@@ -22,7 +21,14 @@ TeamPanel::TeamPanel() : team_name("team_name"), score(0)
 
 void TeamPanel::treatMessages(const std::vector<RobotMsg>& robots_msg)
 {
-  setNbActiveRobots(robots_msg.size());
+  if (robots.size() != robots_msg.size())
+  {
+    setNbActiveRobots(robots_msg.size());
+  }
+  for (size_t idx = 0; idx < robots_msg.size(); idx++)
+  {
+    robots[idx]->treatMessage(robots_msg[idx]);
+  }
 }
 
 void TeamPanel::updateTeamData(const std::string& new_team_name, int new_score)
@@ -33,20 +39,17 @@ void TeamPanel::updateTeamData(const std::string& new_team_name, int new_score)
 }
 void TeamPanel::setNbActiveRobots(int nb_robots)
 {
-  for (size_t i = 0; i < robot_labels.size(); i++)
+  for (size_t i = 0; i < robots.size(); i++)
   {
-    internal_layout->removeWidget(robot_labels[i]);
-    delete(robot_labels[i]);
+    internal_layout->removeWidget(robots[i]);
+    delete (robots[i]);
   }
-  robot_labels.clear();
+  robots.clear();
   for (int i = 0; i < nb_robots; i++)
   {
-    QLabel * robot_label = new QLabel();
-    robot_label->setFont(QFont("Arial",12,3,false));
-    robot_label->setAlignment(Qt::AlignLeft);
-    robot_label->setText(("Robot " + std::to_string(i+1)).c_str());
-    robot_labels.push_back(robot_label);
-    internal_layout->addWidget(robot_label);
+    PlayerWidget* robot = new PlayerWidget();
+    robots.push_back(robot);
+    internal_layout->addWidget(robot);
   }
 }
 
@@ -56,4 +59,4 @@ void TeamPanel::updateTeamLabel()
   team_label->setText(new_text.c_str());
 }
 
-}
+}  // namespace qt_monitoring
