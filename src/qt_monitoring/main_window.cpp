@@ -33,15 +33,21 @@ MainWindow::MainWindow(const std::string& manager_path, const std::string& field
   label_top_view->setAlignment(Qt::AlignCenter);
   label_top_view->setScaledContents(false);
 
-  slider_value_label = new QLabel(this);
-  slider_value_label->setText("0");
-  slider = new QSlider(Qt::Horizontal, this);
 
-  buttonPause = new QPushButton("PLAY");
-  buttonFastForward = new QPushButton("x2");
-
-  connect(buttonPause, SIGNAL(released()), this, SLOT(clickPause()));
-  connect(buttonFastForward, SIGNAL(released()), this, SLOT(clickFastForward()));
+  if (!manager.isLive())
+  {
+    slider_value_label = new QLabel(this);
+    slider_value_label->setText("0");
+    slider = new QSlider(Qt::Horizontal, this);
+    buttonPause = new QPushButton("PLAY");
+    buttonFastForward = new QPushButton("x2");
+    connect(buttonPause, SIGNAL(released()), this, SLOT(clickPause()));
+    connect(buttonFastForward, SIGNAL(released()), this, SLOT(clickFastForward()));
+    layout->addWidget(slider, 7, 1, 1, 4);
+    layout->addWidget(slider_value_label, 8, 1, 1, 1);
+    layout->addWidget(buttonPause, 8, 2, 1, 1);
+    layout->addWidget(buttonFastForward, 8, 3, 1, 1);
+  }
 
   teams.push_back(new TeamPanel());
   teams.push_back(new TeamPanel());
@@ -51,15 +57,11 @@ MainWindow::MainWindow(const std::string& manager_path, const std::string& field
   layout->addWidget(teams[1], 1, 5, 7, 1);
   layout->addWidget(label_video, 1, 1, 3, 4);
   layout->addWidget(label_top_view, 4, 1, 3, 4);
-  layout->addWidget(slider, 7, 1, 1, 4);
-  layout->addWidget(slider_value_label, 8, 1, 1, 1);
-  layout->addWidget(buttonPause, 8, 2, 1, 1);
-  layout->addWidget(buttonFastForward, 8, 3, 1, 1);
 
   zoneCentral->setLayout(layout);
   setCentralWidget(zoneCentral);
 
-  playing = false;
+  playing = manager.isLive();
   speed_ratio = 1;
 
   std::set<std::string> sources = manager.getImageProvidersNames();
@@ -86,8 +88,11 @@ void MainWindow::updateSource()
   initial_time = manager.getImageProvider(active_source).getStart();
   end_time = manager.getImageProvider(active_source).getEnd();
 
-  // Slider has 1 sec step
-  slider->setRange(0, (end_time - initial_time) / 1000000);
+  if (!manager.isLive())
+  {
+    // Slider has 1 sec step
+    slider->setRange(0, (end_time - initial_time) / 1000000);
+  }
 
   now = std::max(std::min(now, end_time), initial_time);
 }
@@ -95,7 +100,7 @@ void MainWindow::updateSource()
 void MainWindow::updateTime()
 {
   // If slider has moved: update 'now' based on it
-  if (slider->value() != old_slider_value)
+  if (!manager.isLive() && slider->value() != old_slider_value)
   {
     now = initial_time + 1000 * 1000 * slider->value();
   }
@@ -104,41 +109,47 @@ void MainWindow::updateTime()
   {
     if (manager.isLive())
     {
-      now = getTimeStamp();
+      // Dirty hack: since live image_providers are not supporting request of frames in the past, always require a frame
+      // from the future
+      double anticipation_ms = 50;
+      now = getTimeStamp() + anticipation_ms * 1000;
     }
     else
     {
       now += dt * speed_ratio;
     }
   }
-  old_slider_value = (now - initial_time) / (1000 * 1000);
-  slider->setValue(old_slider_value);
+  if (!manager.isLive())
+  {
+    old_slider_value = (now - initial_time) / (1000 * 1000);
+    slider->setValue(old_slider_value);
+  }
   char str[30];
-  if (!manager.isLive() && now >= end_time && end_time != 0)
+  if (!manager.isLive())
   {
-    now = end_time;
-    sprintf(str, "end of video");
-  }
-  else
-  {
-    uint64_t elapsed_since_start = now - initial_time;
-    uint64_t elapsed_ms = elapsed_since_start / 1000;
-    uint64_t elapsed_seconds = elapsed_ms / 1000;
-    uint64_t elapsed_minutes = elapsed_seconds / 60;
-    elapsed_ms = elapsed_ms % 1000;
-    elapsed_seconds = elapsed_seconds % 60;
+    if (now >= end_time && end_time != 0)
+    {
+      now = end_time;
+      sprintf(str, "end of video");
+    }
+    else
+    {
+      uint64_t elapsed_since_start = now - initial_time;
+      uint64_t elapsed_ms = elapsed_since_start / 1000;
+      uint64_t elapsed_seconds = elapsed_ms / 1000;
+      uint64_t elapsed_minutes = elapsed_seconds / 60;
+      elapsed_ms = elapsed_ms % 1000;
+      elapsed_seconds = elapsed_seconds % 60;
 
-    sprintf(str, "%.02lu:%.02lu:%.03lu\n", elapsed_minutes, elapsed_seconds, elapsed_ms);
+      sprintf(str, "%.02lu:%.02lu:%.03lu\n", elapsed_minutes, elapsed_seconds, elapsed_ms);
+    }
+    slider_value_label->setText(str);
   }
-  slider_value_label->setText(str);
 }
 
 void MainWindow::updateManager()
 {
-  if (playing)
-  {
-    manager.update();
-  }
+  manager.update();
   status = manager.getMessageManager().getStatus(now);
 }
 
@@ -193,21 +204,23 @@ void MainWindow::updateTeams()
 
 void MainWindow::updateAnnotations()
 {
-  std::map<std::string, CalibratedImage> images_by_source = manager.getCalibratedImages(now);
-
   if (active_source != "")
   {
-    if (images_by_source.count(active_source) == 0)
+    try
     {
-      throw std::runtime_error(HL_DEBUG + " no source named '" + active_source + "'");
-    }
-    const CalibratedImage& calibrated_img = images_by_source.at(active_source);
-    camera_img = cv::Mat(calibrated_img.getImg().clone());
-    if (calibrated_img.isFullySpecified())
-    {
-      const CameraMetaInformation& camera_information = calibrated_img.getCameraInformation();
+      const CalibratedImage& calibrated_img = manager.getCalibratedImage(active_source, now);
+      camera_img = cv::Mat(calibrated_img.getImg().clone());
+      if (calibrated_img.isFullySpecified())
+      {
+        const CameraMetaInformation& camera_information = calibrated_img.getCameraInformation();
 
-      team_drawer.drawNatural(camera_information, status, &camera_img);
+        team_drawer.drawNatural(camera_information, status, &camera_img);
+      }
+    }
+    catch (const std::runtime_error& exc)
+    {
+      std::cerr << "Failed to retrieve annotation for '" << active_source << "' at " << now << std::endl
+                << "\twhat(): " << exc.what() << std::endl;
     }
   }
 
@@ -220,6 +233,12 @@ void MainWindow::update()
   // TODO: width + height as parameters/updated on release
   int w = 1000;
   int h = 800;
+  if (!camera_img.empty())
+  {
+    w /= 2;
+    h /= 2;
+  }
+  updateSource();
   updateTime();
   updateManager();
   top_view_drawer.setImgSize(cv::Size(w, h));
@@ -273,10 +292,6 @@ void MainWindow::clickFastForward()
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
   QMainWindow::resizeEvent(event);
-  //  for (auto it : teamPanels)
-  //  {
-  //    (it.second)->setSizeRobotArea();
-  //  }
 }
 
 }  // namespace qt_monitoring

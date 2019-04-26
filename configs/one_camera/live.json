@@ -1,0 +1,16 @@
+{
+    "message_manager" : {
+        "ports" : [3838, 35009,35003]
+    },
+    "image_providers" : {
+        "webcam" : {
+            "class_name" : "OpenCVImageProvider",
+            "input_path" : "/dev/video1",
+            "output_prefix" : "webcam",
+            "intrinsic_path" : "intrinsic_logitech.bin",
+            "default_pose_path" : "webcam_pose.bin"
+        }
+    },
+    "msg_collection_path" : "messages.bin",
+    "live" : true
+}
