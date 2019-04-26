@@ -16,7 +16,7 @@ using namespace hl_monitoring;
 namespace qt_monitoring
 {
 MainWindow::MainWindow(const std::string& manager_path, const std::string& field_path)
-  : now(0), dt(30 * 1000), old_slider_value(0)
+  : now(0), dt(30 * 1000), memory_duration(2 * 1000 * 1000), old_slider_value(0)
 {
   field.loadFile(field_path);
   manager.loadConfig(manager_path);
@@ -79,6 +79,10 @@ MainWindow::MainWindow(const std::string& manager_path, const std::string& field
 
 void MainWindow::updateSource()
 {
+  if (active_source == "")
+  {
+    return;
+  }
   std::set<std::string> image_provider = manager.getImageProvidersNames();
 
   if (image_provider.count(active_source) == 0)
@@ -213,7 +217,7 @@ void MainWindow::updateAnnotations()
       if (calibrated_img.isFullySpecified())
       {
         const CameraMetaInformation& camera_information = calibrated_img.getCameraInformation();
-
+        field.tagLines(camera_information, &camera_img, cv::Scalar(0, 0, 0), 1, 10);
         team_drawer.drawNatural(camera_information, status, &camera_img);
       }
     }

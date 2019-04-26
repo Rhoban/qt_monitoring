@@ -76,6 +76,11 @@ private:
    */
   uint64_t dt;
 
+  /**
+   * Time to conserve messages from the robots (micro_seconds)
+   */
+  uint64_t memory_duration;
+
   QWidget* zoneCentral;
   QGridLayout* layout;
 
