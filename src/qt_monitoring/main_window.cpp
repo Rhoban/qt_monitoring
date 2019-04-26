@@ -4,6 +4,8 @@
 
 #include <hl_communication/utils.h>
 
+#include <opencv2/imgproc.hpp>
+
 #include <fstream>
 #include <iostream>
 
@@ -226,11 +228,16 @@ void MainWindow::update()
 
   if (!camera_img.empty())
   {
+    cvtColor(camera_img, camera_img, CV_BGR2RGB);
     QPixmap camera_pixmap = QPixmap::fromImage(cvToQImage(camera_img));
     label_video->setPixmap(camera_pixmap.scaled(w, h, Qt::KeepAspectRatio));
   }
-  QPixmap top_view_pixmap = QPixmap::fromImage(cvToQImage(top_view_img));
-  label_top_view->setPixmap(top_view_pixmap.scaled(w, h, Qt::KeepAspectRatio));
+  if (!top_view_img.empty())
+  {
+    cvtColor(top_view_img, top_view_img, CV_BGR2RGB);
+    QPixmap top_view_pixmap = QPixmap::fromImage(cvToQImage(top_view_img));
+    label_top_view->setPixmap(top_view_pixmap.scaled(w, h, Qt::KeepAspectRatio));
+  }
 }
 
 void MainWindow::clickPause()
