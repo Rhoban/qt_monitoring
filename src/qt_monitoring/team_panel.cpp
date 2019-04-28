@@ -47,7 +47,11 @@ void TeamPanel::treatMessages(const GCTeamMsg& team_msg, const std::vector<Robot
   for (const RobotMsg& robot_msg : robots_msg)
   {
     int player_id = robot_msg.robot_id().robot_id();
-    RobotStatus status = getRobotStatus(team_msg.robots(player_id - 1));
+    RobotStatus status = RobotStatus::Active;
+    if (team_msg.robots_size() >= player_id)
+    {
+      getRobotStatus(team_msg.robots(player_id - 1));
+    }
     messages_by_status[status].push_back(robot_msg);
   }
   // If changes occurs, first all robots are removed in order to avoid increasing the height of the layout
