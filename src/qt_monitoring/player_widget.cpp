@@ -15,7 +15,10 @@ PlayerWidget::PlayerWidget() : player_id(0), robot_name("robot")
   layout = new QVBoxLayout();
   layout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
   robot_label = new QLabel();
-  robot_label->setFont(QFont("Arial", 16, 3, false));
+  robot_label->setFont(QFont("Arial", 14, 3, false));
+
+  QFont player_font("Arial", 9, 3, false);
+
   ball_label = new QLabel("Ball:");
   field_label = new QLabel("Field:");
   referee_label = new QLabel("referee:");
@@ -31,8 +34,19 @@ PlayerWidget::PlayerWidget() : player_id(0), robot_name("robot")
   layout->addWidget(playing_label);
   layout->addWidget(search_label);
   layout->addWidget(hardware_label);
+  ball_label->setFont(player_font);
+  field_label->setFont(player_font);
+  referee_label->setFont(player_font);
+  robocup_label->setFont(player_font);
+  playing_label->setFont(player_font);
+  search_label->setFont(player_font);
+  hardware_label->setFont(player_font);
 
   this->setLayout(layout);
+}
+
+PlayerWidget::~PlayerWidget()
+{
 }
 
 void PlayerWidget::treatMessage(const hl_communication::RobotMsg& robot_msg)

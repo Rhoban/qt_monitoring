@@ -53,8 +53,8 @@ MainWindow::MainWindow(const std::string& manager_path, const std::string& field
   teams.push_back(new TeamPanel());
 
   // TODO: update positions and make it easier to read
-  layout->addWidget(teams[0], 1, 0, 7, 1);
-  layout->addWidget(teams[1], 1, 5, 7, 1);
+  layout->addWidget(teams[0], 1, 0, 8, 1);
+  layout->addWidget(teams[1], 1, 5, 8, 1);
   layout->addWidget(label_video, 1, 1, 3, 4);
   layout->addWidget(label_top_view, 4, 1, 3, 4);
 
@@ -201,7 +201,7 @@ void MainWindow::updateTeams()
       teams[team_idx]->updateTeamData("Team " + std::to_string(team_id), 0);
     }
     // TODO: store teams in a .json file
-    teams[team_idx]->treatMessages(entry.second);
+    teams[team_idx]->treatMessages(status.gc_message.teams(team_idx), entry.second);
     default_team_idx++;
   }
 }

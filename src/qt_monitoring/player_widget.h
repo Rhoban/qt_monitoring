@@ -15,11 +15,11 @@ class PlayerWidget : public QWidget
   Q_OBJECT
 public:
   PlayerWidget();
+  ~PlayerWidget();
 
   void treatMessage(const hl_communication::RobotMsg& robot_msg);
 
 private:
-
   void updateBallLabel(const rhoban_team_play::PerceptionExtra& extra);
   void updateFieldLabel(const rhoban_team_play::PerceptionExtra& extra);
 
