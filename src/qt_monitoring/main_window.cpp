@@ -33,7 +33,6 @@ MainWindow::MainWindow(const std::string& manager_path, const std::string& field
   label_top_view->setAlignment(Qt::AlignCenter);
   label_top_view->setScaledContents(false);
 
-
   if (!manager.isLive())
   {
     slider_value_label = new QLabel(this);
@@ -171,9 +170,9 @@ void MainWindow::updateTeams()
     for (size_t idx = 0; idx < 2; idx++)
     {
       const GCTeamMsg& team_msg = status.gc_message.teams(idx);
-      int team_id = team_msg.team_number();
+      uint32_t team_id = team_msg.team_number();
       index_by_team_id[team_id] = idx;
-      teams[idx]->updateTeamData("Team " + std::to_string(team_id), team_msg.score());
+      teams[idx]->updateTeamData(team_id, team_msg.score());
     }
   }
 
@@ -199,7 +198,7 @@ void MainWindow::updateTeams()
     }
     else
     {
-      teams[team_idx]->updateTeamData("Team " + std::to_string(team_id), 0);
+      teams[team_idx]->updateTeamData(team_id, 0);
       teams[team_idx]->treatMessages(GCTeamMsg(), entry.second);
     }
     // TODO: store teams in a .json file

@@ -1,5 +1,7 @@
 #include "team_panel.h"
 
+#include <qt_monitoring/globals.h>
+
 using namespace hl_communication;
 
 namespace qt_monitoring
@@ -17,7 +19,7 @@ TeamPanel::RobotStatus getRobotStatus(const GCRobotMsg& robot_msg)
   return TeamPanel::RobotStatus::Penalized;
 }
 
-TeamPanel::TeamPanel() : team_name("team_name"), score(0)
+TeamPanel::TeamPanel() : team_id(0), score(0)
 {
   internal_layout = new QVBoxLayout();
   team_label = new QLabel();
@@ -76,15 +78,27 @@ void TeamPanel::treatMessages(const GCTeamMsg& team_msg, const std::vector<Robot
   }
 }
 
-void TeamPanel::updateTeamData(const std::string& new_team_name, int new_score)
+void TeamPanel::updateTeamData(uint32_t new_team_id, int new_score)
 {
-  score = new_score;
-  team_name = new_team_name;
-  updateTeamLabel();
+  if (score != new_score || team_id != new_team_id)
+  {
+    score = new_score;
+    team_id = new_team_id;
+    updateTeamLabel();
+  }
 }
 
 void TeamPanel::updateTeamLabel()
 {
+  std::string team_name;
+  if (Globals::team_manager.hasTeam(team_id))
+  {
+    team_name = Globals::team_manager.getTeam(team_id).getName();
+  }
+  else
+  {
+    team_name = "Team " + std::to_string(team_id);
+  }
   std::string new_text = std::to_string(score) + " : " + team_name;
   team_label->setText(new_text.c_str());
 }

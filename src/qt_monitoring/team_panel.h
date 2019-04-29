@@ -24,12 +24,12 @@ public:
   void treatMessages(const hl_communication::GCTeamMsg& team,
                      const std::vector<hl_communication::RobotMsg>& robots_msg);
 
-  void updateTeamData(const std::string& new_team_name, int new_score);
+  void updateTeamData(uint32_t new_team_id, int new_score);
 
 private:
   void updateTeamLabel();
 
-  std::string team_name;
+  uint32_t team_id;
 
   int score;
 

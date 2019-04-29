@@ -1,5 +1,6 @@
 #include "player_widget.h"
 
+#include <qt_monitoring/globals.h>
 #include <qt_monitoring/utils.h>
 
 #include <hl_communication/utils.h>
@@ -51,8 +52,7 @@ PlayerWidget::~PlayerWidget()
 
 void PlayerWidget::treatMessage(const hl_communication::RobotMsg& robot_msg)
 {
-  std::string robot_text = "Player " + std::to_string(robot_msg.robot_id().robot_id());
-  robot_label->setText(robot_text.c_str());
+  updateRobotLabel(robot_msg.robot_id());
   if (!robot_msg.has_free_field())
   {
     throw std::logic_error(HL_DEBUG + "no free field (Rhoban standard)");
@@ -73,6 +73,18 @@ void PlayerWidget::treatMessage(const hl_communication::RobotMsg& robot_msg)
   search_label->setText(("search: " + extra.search()).c_str());
   hardware_label->setText(("hardware: " + extra.hardware_warnings()).c_str());
 };
+
+void PlayerWidget::updateRobotLabel(const hl_communication::RobotIdentifier& identifier)
+{
+  uint32_t team_id = identifier.team_id();
+  uint32_t player_id = identifier.robot_id();
+  std::string robot_text = "Player " + std::to_string(player_id);
+  if (Globals::team_manager.hasTeam(team_id) && Globals::team_manager.getTeam(team_id).hasPlayer(player_id))
+  {
+    robot_text = std::to_string(player_id) + " - " + Globals::team_manager.getTeam(team_id).getName(player_id);
+  }
+  robot_label->setText(robot_text.c_str());
+}
 
 void PlayerWidget::updateBallLabel(const rhoban_team_play::PerceptionExtra& extra)
 {
