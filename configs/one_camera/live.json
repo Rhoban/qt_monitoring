@@ -1,16 +1,45 @@
 {
     "message_manager" : {
-        "ports" : [3838, 35009,35003]
+        "ports" : [3838, 35000,35003]
     },
     "image_providers" : {
         "webcam" : {
             "class_name" : "OpenCVImageProvider",
-            "input_path" : "/dev/video1",
+            "input_path" : "/dev/video0",
             "output_prefix" : "webcam",
             "intrinsic_path" : "intrinsic_logitech.bin",
             "default_pose_path" : "webcam_pose.bin"
         }
     },
     "msg_collection_path" : "messages.bin",
-    "live" : true
+    "live" : true,
+    "field" :{
+        "border_strip_width_x" : 0.3,
+        "border_strip_width_y" : 0.7,
+        "center_radius" : 0.75,
+        "field_length" : 9,
+        "field_width" : 6,
+        "goal_area_length" : 1,
+        "goal_area_width" : 5,
+        "goal_depth" : 0.6,
+        "goal_width" : 2.6,
+        "line_width" : 0.05,
+        "penalty_mark_dist" : 1.5,
+        "penalty_mark_length" : 0.1,
+        "ball_radius" : 0.075
+    },
+    "team_manager" : {
+        "teams" : {
+            "9" : {
+                "name" : "Rhoban FC",
+                "players" : {
+                    "1" : "Olive",
+                    "2" : "Nova",
+                    "3" : "Arya",
+                    "4" : "Tom",
+                    "5" : "Rush"
+                }
+            }
+        }
+    }
 }

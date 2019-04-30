@@ -23,7 +23,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  MainWindow(const std::string& manager_path, const std::string& field_path);
+  MainWindow(const std::string& manager_path);
 
 public slots:
   /**
@@ -45,7 +45,6 @@ private:
   hl_communication::MessageManager::Status status;
   hl_monitoring::MonitoringManager manager;
   hl_monitoring::TopViewDrawer top_view_drawer;
-  hl_monitoring::Field field;
   hl_monitoring::TeamDrawer team_drawer;
 
   /**
