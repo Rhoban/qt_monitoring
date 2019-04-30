@@ -1,6 +1,6 @@
 {
     "message_manager" : {
-        "ports" : [3838, 35009,35003]
+        "ports" : [3838]
     },
     "image_providers" : {
     },
