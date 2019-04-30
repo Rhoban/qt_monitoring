@@ -29,6 +29,12 @@ public:
    */
   int getPlayerId() const;
 
+  /**
+   * team_idx in {0,1}
+   * team_id: the official team_id @see hl_monitoring::TeamManager
+   */
+  void setTeamId(int team_idx, int team_id);
+
 public slots:
   void onPOVUpdate(const QString& text);
   void onTeamUpdate(int idx);

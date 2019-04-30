@@ -1,5 +1,7 @@
 #include "pov_manager.h"
 
+#include <qt_monitoring/globals.h>
+
 namespace qt_monitoring
 {
 std::map<POVManager::PointOfView, std::string> POVManager::pov_to_str = {
@@ -26,8 +28,7 @@ POVManager::POVManager() : current_pov(PointOfView::global), current_team_idx(0)
   team_choice->insertItem(1, "Team B");
   QObject::connect(team_choice, SIGNAL(activated(int)), this, SLOT(onTeamUpdate(int)));
   player_choice = new QComboBox();
-  // TODO: add a method to set the number of robots
-  for (int player_idx = 0; player_idx < 6; player_idx++)
+  for (int player_idx = 0; player_idx < Globals::team_manager.getNbPlayersPerTeam(); player_idx++)
   {
     player_choice->insertItem(player_idx, ("Player" + std::to_string(player_idx + 1)).c_str());
   }
@@ -52,6 +53,19 @@ int POVManager::getTeamIdx() const
 int POVManager::getPlayerId() const
 {
   return current_player_idx + 1;
+}
+
+void POVManager::setTeamId(int team_idx, int team_id)
+{
+  team_choice->setItemText(team_idx, Globals::team_manager.getTeamName(team_id).c_str());
+  if (team_idx == current_team_idx)
+  {
+    for (int player_idx = 0; player_idx < Globals::team_manager.getNbPlayersPerTeam(); player_idx++)
+    {
+      std::string new_text = Globals::team_manager.getPlayerName(team_id, player_idx + 1);
+      player_choice->setItemText(player_idx, new_text.c_str());
+    }
+  }
 }
 
 void POVManager::onPOVUpdate(const QString& q_text)

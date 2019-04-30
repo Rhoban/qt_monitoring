@@ -78,11 +78,7 @@ void PlayerWidget::updateRobotLabel(const hl_communication::RobotIdentifier& ide
 {
   uint32_t team_id = identifier.team_id();
   uint32_t player_id = identifier.robot_id();
-  std::string robot_text = "Player " + std::to_string(player_id);
-  if (Globals::team_manager.hasTeam(team_id) && Globals::team_manager.getTeam(team_id).hasPlayer(player_id))
-  {
-    robot_text = std::to_string(player_id) + " - " + Globals::team_manager.getTeam(team_id).getName(player_id);
-  }
+  std::string robot_text = Globals::team_manager.getPlayerName(team_id, player_id);
   robot_label->setText(robot_text.c_str());
 }
 

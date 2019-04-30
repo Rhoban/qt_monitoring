@@ -95,15 +95,7 @@ uint32_t TeamPanel::getTeamId() const
 
 void TeamPanel::updateTeamLabel()
 {
-  std::string team_name;
-  if (Globals::team_manager.hasTeam(team_id))
-  {
-    team_name = Globals::team_manager.getTeam(team_id).getName();
-  }
-  else
-  {
-    team_name = "Team " + std::to_string(team_id);
-  }
+  std::string team_name = Globals::team_manager.getTeamName(team_id);
   std::string new_text = std::to_string(score) + " : " + team_name;
   team_label->setText(new_text.c_str());
 }

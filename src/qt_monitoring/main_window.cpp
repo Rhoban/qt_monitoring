@@ -185,6 +185,7 @@ void MainWindow::updateTeams()
       uint32_t team_id = team_msg.team_number();
       index_by_team_id[team_id] = idx;
       teams[idx]->updateTeamData(team_id, team_msg.score());
+      pov_manager->setTeamId(idx, team_id);
     }
   }
 
