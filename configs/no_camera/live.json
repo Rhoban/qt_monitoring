@@ -1,4 +1,5 @@
 {
+    "output_prefix" : "/tmp",
     "message_manager" : {
         "ports" : [3838]
     },
