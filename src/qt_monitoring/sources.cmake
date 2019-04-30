@@ -3,6 +3,7 @@ set(SOURCES
 	main_window.cpp
   player_group.cpp
   player_widget.cpp
+  pov_manager.cpp
   team_panel.cpp
   utils.cpp
 	)

@@ -88,6 +88,11 @@ void TeamPanel::updateTeamData(uint32_t new_team_id, int new_score)
   }
 }
 
+uint32_t TeamPanel::getTeamId() const
+{
+  return team_id;
+}
+
 void TeamPanel::updateTeamLabel()
 {
   std::string team_name;

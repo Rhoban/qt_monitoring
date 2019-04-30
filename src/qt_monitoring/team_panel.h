@@ -26,6 +26,8 @@ public:
 
   void updateTeamData(uint32_t new_team_id, int new_score);
 
+  uint32_t getTeamId() const;
+
 private:
   void updateTeamLabel();
 

@@ -49,12 +49,15 @@ MainWindow::MainWindow(const std::string& manager_path)
     layout->addWidget(buttonFastForward, 8, 3, 1, 1);
   }
 
+  pov_manager = new POVManager();
+
   teams.push_back(new TeamPanel());
   teams.push_back(new TeamPanel());
 
   // TODO: update positions and make it easier to read
   layout->addWidget(teams[0], 1, 0, 8, 1);
   layout->addWidget(teams[1], 1, 5, 8, 1);
+  layout->addWidget(pov_manager, 0, 1, 1, 4);
   layout->addWidget(label_video, 1, 1, 3, 4);
   layout->addWidget(label_top_view, 4, 1, 3, 4);
 
@@ -166,9 +169,17 @@ void MainWindow::updateTeams()
   {
     throw std::logic_error(HL_DEBUG + "Invalid number of teams in gc_message");
   }
-  if (has_gc_message)
+  for (size_t idx = 0; idx < 2; idx++)
   {
-    for (size_t idx = 0; idx < 2; idx++)
+    if (pov_manager->getPOV() != POVManager::PointOfView::global && pov_manager->getTeamIdx() != (int)idx)
+    {
+      teams[idx]->hide();
+    }
+    else
+    {
+      teams[idx]->show();
+    }
+    if (has_gc_message)
     {
       const GCTeamMsg& team_msg = status.gc_message.teams(idx);
       uint32_t team_id = team_msg.team_number();
@@ -209,6 +220,20 @@ void MainWindow::updateTeams()
 
 void MainWindow::updateAnnotations()
 {
+  POVManager::PointOfView pov = pov_manager->getPOV();
+  int team_focus = -1;
+  int player_focus = -1;
+  if (pov != POVManager::PointOfView::global)
+  {
+    team_focus = teams[pov_manager->getTeamIdx()]->getTeamId();
+  }
+  if (pov == POVManager::PointOfView::player)
+  {
+    player_focus = pov_manager->getPlayerId();
+  }
+  team_drawer.setTeamFocus(team_focus);
+  team_drawer.setPlayerFocus(player_focus);
+
   if (active_source != "")
   {
     try

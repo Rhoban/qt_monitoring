@@ -1,5 +1,6 @@
 #pragma once
 
+#include <qt_monitoring/pov_manager.h>
 #include <qt_monitoring/team_panel.h>
 
 #include <hl_communication/message_manager.h>
@@ -94,6 +95,7 @@ private:
   bool playing;
   int speed_ratio;
 
+  POVManager* pov_manager;
   std::vector<TeamPanel*> teams;
 
 protected:
