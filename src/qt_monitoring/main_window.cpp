@@ -214,19 +214,19 @@ void MainWindow::updateTeams()
       teams[team_idx]->updateTeamData(team_id, 0);
       teams[team_idx]->treatMessages(GCTeamMsg(), entry.second);
     }
-    // TODO: store teams in a .json file
     default_team_idx++;
   }
 }
 
-void MainWindow::updateAnnotations()
+void MainWindow::updatePOV()
 {
   POVManager::PointOfView pov = pov_manager->getPOV();
+  int team_idx = pov_manager->getTeamIdx();
   int team_focus = -1;
   int player_focus = -1;
   if (pov != POVManager::PointOfView::global)
   {
-    team_focus = teams[pov_manager->getTeamIdx()]->getTeamId();
+    team_focus = teams[team_idx]->getTeamId();
   }
   if (pov == POVManager::PointOfView::player)
   {
@@ -234,7 +234,15 @@ void MainWindow::updateAnnotations()
   }
   team_drawer.setTeamFocus(team_focus);
   team_drawer.setPlayerFocus(player_focus);
+  for (int idx = 0; idx < 2; idx++)
+  {
+    int team_player_focus = team_idx == idx ? player_focus : -1;
+    teams[idx]->update(now, team_player_focus);
+  }
+}
 
+void MainWindow::updateAnnotations()
+{
   if (active_source != "")
   {
     try
@@ -272,6 +280,7 @@ void MainWindow::update()
   updateSource();
   updateTime();
   updateManager();
+  updatePOV();
   top_view_drawer.setImgSize(cv::Size(w, h));
   updateTeams();
   updateAnnotations();

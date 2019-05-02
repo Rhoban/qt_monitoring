@@ -21,24 +21,43 @@ TeamPanel::RobotStatus getRobotStatus(const GCRobotMsg& robot_msg)
 
 TeamPanel::TeamPanel() : team_id(0), score(0)
 {
-  internal_layout = new QVBoxLayout();
+  internal_layout = new QGridLayout();
+  internal_layout->setAlignment(Qt::AlignCenter | Qt::AlignTop);
   team_label = new QLabel();
   team_label->setFont(QFont("Arial", 18, 3, false));
   team_label->setAlignment(Qt::AlignCenter | Qt::AlignTop);
-  internal_layout->addWidget(team_label);
-  internal_layout->setAlignment(Qt::AlignCenter | Qt::AlignTop);
+  text_log_label = new QLabel();
+  text_log_label->setFont(QFont("Arial", 10, 3, false));
+  text_log_label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
   robots_by_status = { { RobotStatus::Active, new PlayerGroup("Active players") },
                        { RobotStatus::Penalized, new PlayerGroup("Penalized players") },
                        { RobotStatus::Substitute, new PlayerGroup("Substitutes") } };
+
+  int idx = 0;
+  internal_layout->addWidget(team_label, idx++, 0, 1, 1);
   for (auto& entry : robots_by_status)
   {
-    internal_layout->addWidget(entry.second);
+    internal_layout->addWidget(entry.second, idx++, 0, 1, 1);
   }
+  internal_layout->addWidget(text_log_label, 0, 1, idx, 1);
+  text_log_label->hide();
 
   updateTeamLabel();
 
   this->setLayout(internal_layout);
+}
+
+void TeamPanel::update(uint64_t time_stamp, int player_focus)
+{
+  if (player_focus <= 0)
+  {
+    text_log_label->hide();
+    return;
+  }
+  text_log_label->show();
+  std::string new_text = "LOG for " + std::to_string(player_focus) + " at " + std::to_string(time_stamp);
+  text_log_label->setText(new_text.c_str());
 }
 
 void TeamPanel::treatMessages(const GCTeamMsg& team_msg, const std::vector<RobotMsg>& robots_msg)

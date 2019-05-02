@@ -21,6 +21,12 @@ public:
 
   TeamPanel();
 
+  /**
+   * Update content of the team panel for given time_stamp (microseconds since epoch) and chosen player focus
+   * player focus is player_id, starting from 1, value below 1 indicates that no player has the focus
+   */
+  void update(uint64_t time_stamp, int player_focus);
+
   void treatMessages(const hl_communication::GCTeamMsg& team,
                      const std::vector<hl_communication::RobotMsg>& robots_msg);
 
@@ -37,7 +43,9 @@ private:
 
   QLabel* team_label;
 
-  QVBoxLayout* internal_layout;
+  QGridLayout* internal_layout;
+
+  QLabel* text_log_label;
 
   std::map<RobotStatus, PlayerGroup*> robots_by_status;
 };
