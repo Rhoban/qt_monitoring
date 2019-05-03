@@ -1,7 +1,6 @@
 {
-    "output_prefix" : "/tmp",
     "message_manager" : {
-        "ports" : [3838]
+        "ports" : [3838, 35009]
     },
     "image_providers" : {
     },
@@ -23,6 +22,7 @@
         "ball_radius" : 0.075
     },
     "team_manager" : {
+        "players" : 6,
         "teams" : {
             "9" : {
                 "name" : "Rhoban FC",
