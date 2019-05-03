@@ -103,6 +103,10 @@ void TeamPanel::updateTeamData(uint32_t new_team_id, int new_score)
   {
     score = new_score;
     team_id = new_team_id;
+    for (auto& entry : robots_by_status)
+    {
+      entry.second->clearRobots();
+    }
     updateTeamLabel();
   }
 }
