@@ -8,7 +8,6 @@
 #include <opencv2/imgproc.hpp>
 
 #include <fstream>
-#include <iostream>
 
 using namespace cv;
 using namespace hl_communication;
@@ -157,7 +156,7 @@ void MainWindow::updateTime()
 void MainWindow::updateManager()
 {
   manager.update();
-  status = manager.getMessageManager().getStatus(now);
+  status = manager.getMessageManager().getStatus(now, memory_duration);
 }
 
 void MainWindow::updateTeams()
@@ -169,6 +168,7 @@ void MainWindow::updateTeams()
   {
     throw std::logic_error(HL_DEBUG + "Invalid number of teams in gc_message");
   }
+
   for (size_t idx = 0; idx < 2; idx++)
   {
     if (pov_manager->getPOV() != POVManager::PointOfView::global && pov_manager->getTeamIdx() != (int)idx)
@@ -188,18 +188,44 @@ void MainWindow::updateTeams()
       pov_manager->setTeamId(idx, team_id);
     }
   }
+  // If some team id have not been set (it means game controller messages have not been read yet)
+  // iterates over
+  if (teams[0]->getTeamId() == 0 || teams[1]->getTeamId() == 0)
+  {
+    for (const auto& entry : status.getRobotsByTeam())
+    {
+      bool team_registered = false;
+      for (int team_idx = 0; team_idx < 2 && !team_registered; team_idx++)
+      {
+        uint32_t actual_team_id = teams[team_idx]->getTeamId();
+        if (actual_team_id == entry.first)
+        {
+          team_registered = true;
+          continue;
+        }
+        if (actual_team_id == 0)
+        {
+          teams[team_idx]->updateTeamData(entry.first, 0);
+          team_registered = true;
+        }
+      }
+      if (!team_registered)
+      {
+        throw std::runtime_error(HL_DEBUG + " too much teams on the network, not accepting team " +
+                                 std::to_string(entry.first));
+      }
+    }
+  }
 
-  int default_team_idx = 0;
   std::map<uint32_t, std::vector<RobotMsg>> robots_by_team = status.getRobotsByTeam();
   if (robots_by_team.size() > 2)
   {
     throw std::logic_error("Too many teams in GC message");
   }
-  for (const auto& entry : robots_by_team)
+  for (int team_idx : { 0, 1 })
   {
-    uint32_t team_id = entry.first;
+    uint32_t team_id = teams[team_idx]->getTeamId();
 
-    int team_idx = default_team_idx;
     if (has_gc_message)
     {
       if (index_by_team_id.count(team_id) == 0)
@@ -207,14 +233,13 @@ void MainWindow::updateTeams()
         throw std::logic_error(HL_DEBUG + "Unknown index for team " + std::to_string(team_id));
       }
       team_idx = index_by_team_id[team_id];
-      teams[team_idx]->treatMessages(status.gc_message.teams(team_idx), entry.second);
+      teams[team_idx]->treatMessages(status.gc_message.teams(team_idx), robots_by_team[team_id]);
     }
     else
     {
       teams[team_idx]->updateTeamData(team_id, 0);
-      teams[team_idx]->treatMessages(GCTeamMsg(), entry.second);
+      teams[team_idx]->treatMessages(GCTeamMsg(), robots_by_team[team_id]);
     }
-    default_team_idx++;
   }
 }
 
