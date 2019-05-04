@@ -8,6 +8,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include <fstream>
+#include <iostream>
 
 using namespace cv;
 using namespace hl_communication;
