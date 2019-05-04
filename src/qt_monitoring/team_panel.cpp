@@ -2,6 +2,8 @@
 
 #include <qt_monitoring/globals.h>
 
+#include <iostream>
+
 using namespace hl_communication;
 
 namespace qt_monitoring
@@ -71,7 +73,11 @@ void TeamPanel::treatMessages(const GCTeamMsg& team_msg, const std::vector<Robot
     RobotStatus status = RobotStatus::Active;
     if (team_msg.robots_size() >= player_id)
     {
-      getRobotStatus(team_msg.robots(player_id - 1));
+      status = getRobotStatus(team_msg.robots(player_id - 1));
+    }
+    else if (team_msg.robots_size() != 0) // Message received from GameController
+    {
+      std::cerr << "Received message with invalid player id: " << player_id  << "team_msg # robot" << team_msg.robots_size() << std::endl;
     }
     messages_by_status[status].push_back(robot_msg);
   }
