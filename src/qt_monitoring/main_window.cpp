@@ -55,11 +55,9 @@ MainWindow::MainWindow(const std::string& manager_path)
   teams.push_back(new TeamPanel());
 
   // TODO: update positions and make it easier to read
-  layout->addWidget(teams[0], 1, 0, 8, 1);
-  layout->addWidget(teams[1], 1, 5, 8, 1);
+  layout->addWidget(teams[0], 0, 0, 9, 1);
+  layout->addWidget(teams[1], 0, 5, 9, 1);
   layout->addWidget(pov_manager, 0, 1, 1, 4);
-  layout->addWidget(label_video, 1, 1, 3, 4);
-  layout->addWidget(label_top_view, 4, 1, 3, 4);
 
   zoneCentral->setLayout(layout);
   setCentralWidget(zoneCentral);
@@ -68,10 +66,17 @@ MainWindow::MainWindow(const std::string& manager_path)
   speed_ratio = 1;
 
   std::set<std::string> sources = manager.getImageProvidersNames();
-  if (sources.size() > 0)
+  bool has_img_provider = sources.size() > 0;
+  if (has_img_provider)
   {
+    layout->addWidget(label_video, 1, 1, 3, 4);
+    layout->addWidget(label_top_view, 4, 1, 3, 4);
     active_source = *(sources.begin());
     updateSource();
+  }
+  else
+  {
+    layout->addWidget(label_top_view, 1, 1, 6, 4);
   }
   update();
 
@@ -84,6 +89,8 @@ void MainWindow::updateSource()
 {
   if (active_source == "")
   {
+    initial_time = manager.getMessageManager().getStart();
+    end_time = manager.getMessageManager().getEnd();
     return;
   }
   std::set<std::string> image_provider = manager.getImageProvidersNames();
@@ -296,7 +303,7 @@ void MainWindow::updateAnnotations()
 void MainWindow::update()
 {
   // TODO: width + height as parameters/updated on release
-  int w = 1000;
+  int w = 1200;
   int h = 800;
   if (!camera_img.empty())
   {
