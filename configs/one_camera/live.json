@@ -1,11 +1,11 @@
 {
     "message_manager" : {
-        "ports" : [3838, 35000,35003]
+        "ports" : [3838, 35009]
     },
     "image_providers" : {
         "webcam" : {
             "class_name" : "OpenCVImageProvider",
-            "input_path" : "/dev/video0",
+            "input_path" : "/dev/video2",
             "output_prefix" : "webcam",
             "intrinsic_path" : "intrinsic_logitech.bin",
             "default_pose_path" : "webcam_pose.bin"
@@ -29,6 +29,7 @@
         "ball_radius" : 0.075
     },
     "team_manager" : {
+        "players" : 6,
         "teams" : {
             "9" : {
                 "name" : "Rhoban FC",
