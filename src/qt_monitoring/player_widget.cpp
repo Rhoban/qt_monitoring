@@ -14,11 +14,12 @@ namespace qt_monitoring
 PlayerWidget::PlayerWidget() : player_id(0), robot_name("robot")
 {
   layout = new QVBoxLayout();
+  layout->setSpacing(0);
   layout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
   robot_label = new QLabel();
-  robot_label->setFont(QFont("Arial", 14, 3, false));
+  robot_label->setFont(QFont("Arial", 12, 3, false));
 
-  QFont player_font("Arial", 9, 3, false);
+  QFont player_font("Arial", 10, 3, false);
 
   ball_label = new QLabel("Ball:");
   field_label = new QLabel("Field:");
