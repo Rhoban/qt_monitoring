@@ -27,12 +27,7 @@ MainWindow::MainWindow(const std::string& manager_path)
   zoneCentral = new QWidget;
   layout = new QGridLayout;
 
-  label_video = new QLabel();
-  label_video->setAlignment(Qt::AlignCenter);
-  label_video->setScaledContents(false);
-  label_top_view = new QLabel();
-  label_top_view->setAlignment(Qt::AlignCenter);
-  label_top_view->setScaledContents(false);
+  video_widget = new VideoWidget();
 
   if (!manager.isLive())
   {
@@ -58,6 +53,7 @@ MainWindow::MainWindow(const std::string& manager_path)
   layout->addWidget(teams[0], 0, 0, 9, 1);
   layout->addWidget(teams[1], 0, 5, 9, 1);
   layout->addWidget(pov_manager, 0, 1, 1, 4);
+  layout->addWidget(video_widget, 1, 1, 6, 4);
 
   zoneCentral->setLayout(layout);
   setCentralWidget(zoneCentral);
@@ -65,19 +61,8 @@ MainWindow::MainWindow(const std::string& manager_path)
   playing = manager.isLive();
   speed_ratio = 1;
 
-  std::set<std::string> sources = manager.getImageProvidersNames();
-  bool has_img_provider = sources.size() > 0;
-  if (has_img_provider)
-  {
-    layout->addWidget(label_video, 1, 1, 3, 4);
-    layout->addWidget(label_top_view, 4, 1, 3, 4);
-    active_source = *(sources.begin());
-    updateSource();
-  }
-  else
-  {
-    layout->addWidget(label_top_view, 1, 1, 6, 4);
-  }
+  video_widget->updateAvailableSources(manager.getImageProvidersNames());
+  updateSource();
   update();
 
   timer = new QTimer(this);
@@ -87,25 +72,22 @@ MainWindow::MainWindow(const std::string& manager_path)
 
 void MainWindow::updateSource()
 {
-  if (active_source == "")
-  {
-    initial_time = manager.getMessageManager().getStart();
-    end_time = manager.getMessageManager().getEnd();
-    return;
-  }
-  std::set<std::string> image_provider = manager.getImageProvidersNames();
+  initial_time = manager.getMessageManager().getStart();
+  end_time = manager.getMessageManager().getEnd();
 
-  if (image_provider.count(active_source) == 0)
+  std::set<std::string> active_sources = video_widget->getStreamSelector().getActiveSources();
+  for (const std::string& source_name : active_sources)
   {
-    throw std::logic_error(HL_DEBUG + " source '" + active_source + "' not found");
+    if (source_name == "TopView")
+      continue;
+    initial_time = std::min(initial_time, manager.getImageProvider(source_name).getStart());
+    end_time = std::max(end_time, manager.getImageProvider(source_name).getEnd());
   }
-  initial_time = manager.getImageProvider(active_source).getStart();
-  end_time = manager.getImageProvider(active_source).getEnd();
 
   if (!manager.isLive())
   {
-    // Slider has 1 sec step
-    slider->setRange(0, (end_time - initial_time) / 1000000);
+    // Slider has 1 sec step, time_stamps are micro_seconds
+    slider->setRange(0, (end_time - initial_time) / std::pow(10, 6));
   }
 
   now = std::max(std::min(now, end_time), initial_time);
@@ -265,8 +247,7 @@ void MainWindow::updatePOV()
   {
     player_focus = pov_manager->getPlayerId();
   }
-  team_drawer.setTeamFocus(team_focus);
-  team_drawer.setPlayerFocus(player_focus);
+  video_widget->updateFocus(team_focus, player_focus);
   for (int idx = 0; idx < 2; idx++)
   {
     int team_player_focus = team_idx == idx ? player_focus : -1;
@@ -274,62 +255,14 @@ void MainWindow::updatePOV()
   }
 }
 
-void MainWindow::updateAnnotations()
-{
-  if (active_source != "")
-  {
-    try
-    {
-      const CalibratedImage& calibrated_img = manager.getCalibratedImage(active_source, now);
-      camera_img = cv::Mat(calibrated_img.getImg().clone());
-      if (calibrated_img.isFullySpecified())
-      {
-        const CameraMetaInformation& camera_information = calibrated_img.getCameraInformation();
-        manager.getField().tagLines(camera_information, &camera_img, cv::Scalar(0, 0, 0), 1, 10);
-        team_drawer.drawNatural(camera_information, status, &camera_img);
-      }
-    }
-    catch (const std::runtime_error& exc)
-    {
-      std::cerr << "Failed to retrieve annotation for '" << active_source << "' at " << now << std::endl
-                << "\twhat(): " << exc.what() << std::endl;
-    }
-  }
-
-  top_view_img = cv::Mat(top_view_drawer.getImg(manager.getField()));
-  team_drawer.drawTopView(manager.getField(), top_view_drawer, status, &top_view_img);
-}
-
 void MainWindow::update()
 {
-  // TODO: width + height as parameters/updated on release
-  int w = 1200;
-  int h = 800;
-  if (!camera_img.empty())
-  {
-    w /= 2;
-    h /= 2;
-  }
   updateSource();
   updateTime();
   updateManager();
   updatePOV();
-  top_view_drawer.setImgSize(cv::Size(w, h));
   updateTeams();
-  updateAnnotations();
-
-  if (!camera_img.empty())
-  {
-    cvtColor(camera_img, camera_img, CV_BGR2RGB);
-    QPixmap camera_pixmap = QPixmap::fromImage(cvToQImage(camera_img));
-    label_video->setPixmap(camera_pixmap.scaled(w, h, Qt::KeepAspectRatio));
-  }
-  if (!top_view_img.empty())
-  {
-    cvtColor(top_view_img, top_view_img, CV_BGR2RGB);
-    QPixmap top_view_pixmap = QPixmap::fromImage(cvToQImage(top_view_img));
-    label_top_view->setPixmap(top_view_pixmap.scaled(w, h, Qt::KeepAspectRatio));
-  }
+  video_widget->updateContent(manager.getCalibratedImages(now), manager.getField(), status);
 }
 
 void MainWindow::clickPause()

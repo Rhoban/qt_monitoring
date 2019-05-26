@@ -2,11 +2,10 @@
 
 #include <qt_monitoring/pov_manager.h>
 #include <qt_monitoring/team_panel.h>
+#include <qt_monitoring/video_widget.h>
 
 #include <hl_communication/message_manager.h>
 #include <hl_monitoring/monitoring_manager.h>
-#include <hl_monitoring/top_view_drawer.h>
-#include <hl_monitoring/drawers/team_drawer.h>
 
 #include <QGridLayout>
 #include <QLabel>
@@ -38,7 +37,6 @@ public slots:
   void updateManager();
   void updateTeams();
   void updatePOV();
-  void updateAnnotations();
   void update();
   void clickPause();
   void clickFastForward();
@@ -46,18 +44,8 @@ public slots:
 private:
   hl_communication::MessageManager::Status status;
   hl_monitoring::MonitoringManager manager;
-  hl_monitoring::TopViewDrawer top_view_drawer;
-  hl_monitoring::TeamDrawer team_drawer;
 
-  /**
-   * Name of the active source
-   */
-  std::string active_source;
-
-  QLabel* label_video;
-  QLabel* label_top_view;
-  cv::Mat camera_img;
-  cv::Mat top_view_img;
+  VideoWidget* video_widget;
 
   QTimer* timer;
   /**
