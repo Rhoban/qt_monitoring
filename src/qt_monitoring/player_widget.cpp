@@ -73,6 +73,7 @@ void PlayerWidget::treatMessage(const hl_communication::RobotMsg& robot_msg)
   playing_label->setText(("playing: " + extra.playing()).c_str());
   search_label->setText(("search: " + extra.search()).c_str());
   hardware_label->setText(("hardware: " + extra.hardware_warnings()).c_str());
+  updateStyle(hardware_label, extra.hardware_warnings().size() > 0);
 };
 
 void PlayerWidget::updateRobotLabel(const hl_communication::RobotIdentifier& identifier)
