@@ -16,11 +16,10 @@ using namespace hl_monitoring;
 
 namespace qt_monitoring
 {
-MainWindow::MainWindow(const std::string& manager_path)
-  : now(0), dt(30 * 1000), memory_duration(2 * 1000 * 1000), old_slider_value(0)
+MainWindow::MainWindow(std::unique_ptr<hl_monitoring::MonitoringManager> manager_)
+  : manager(std::move(manager_)), now(0), dt(30 * 1000), memory_duration(2 * 1000 * 1000), old_slider_value(0)
 {
-  manager.loadConfig(manager_path);
-  Globals::team_manager = manager.getTeamManager();
+  Globals::team_manager = manager->getTeamManager();
 
   setWindowTitle(tr("QTMonitor"));
 
@@ -29,7 +28,7 @@ MainWindow::MainWindow(const std::string& manager_path)
 
   video_widget = new VideoWidget();
 
-  if (!manager.isLive())
+  if (!manager->isLive())
   {
     slider_value_label = new QLabel(this);
     slider_value_label->setText("0");
@@ -58,10 +57,10 @@ MainWindow::MainWindow(const std::string& manager_path)
   zoneCentral->setLayout(layout);
   setCentralWidget(zoneCentral);
 
-  playing = manager.isLive();
+  playing = manager->isLive();
   speed_ratio = 1;
 
-  video_widget->updateAvailableSources(manager.getImageProvidersNames());
+  video_widget->updateAvailableSources(manager->getImageProvidersNames());
   updateSource();
   update();
 
@@ -72,19 +71,19 @@ MainWindow::MainWindow(const std::string& manager_path)
 
 void MainWindow::updateSource()
 {
-  initial_time = manager.getMessageManager().getStart();
-  end_time = manager.getMessageManager().getEnd();
+  initial_time = manager->getMessageManager().getStart();
+  end_time = manager->getMessageManager().getEnd();
 
   std::set<std::string> active_sources = video_widget->getStreamSelector().getActiveSources();
   for (const std::string& source_name : active_sources)
   {
     if (source_name == "TopView")
       continue;
-    initial_time = std::min(initial_time, manager.getImageProvider(source_name).getStart());
-    end_time = std::max(end_time, manager.getImageProvider(source_name).getEnd());
+    initial_time = std::min(initial_time, manager->getImageProvider(source_name).getStart());
+    end_time = std::max(end_time, manager->getImageProvider(source_name).getEnd());
   }
 
-  if (!manager.isLive())
+  if (!manager->isLive())
   {
     // Slider has 1 sec step, time_stamps are micro_seconds
     slider->setRange(0, (end_time - initial_time) / std::pow(10, 6));
@@ -96,14 +95,14 @@ void MainWindow::updateSource()
 void MainWindow::updateTime()
 {
   // If slider has moved: update 'now' based on it
-  if (!manager.isLive() && slider->value() != old_slider_value)
+  if (!manager->isLive() && slider->value() != old_slider_value)
   {
     now = initial_time + 1000 * 1000 * slider->value();
   }
 
   if (playing)
   {
-    if (manager.isLive())
+    if (manager->isLive())
     {
       // Dirty hack: since live image_providers are not supporting request of frames in the past, always require a frame
       // from the future
@@ -115,13 +114,13 @@ void MainWindow::updateTime()
       now += dt * speed_ratio;
     }
   }
-  if (!manager.isLive())
+  if (!manager->isLive())
   {
     old_slider_value = (now - initial_time) / (1000 * 1000);
     slider->setValue(old_slider_value);
   }
   char str[30];
-  if (!manager.isLive())
+  if (!manager->isLive())
   {
     if (now >= end_time && end_time != 0)
     {
@@ -145,8 +144,8 @@ void MainWindow::updateTime()
 
 void MainWindow::updateManager()
 {
-  manager.update();
-  status = manager.getMessageManager().getStatus(now, memory_duration);
+  manager->update();
+  status = manager->getMessageManager().getStatus(now, memory_duration);
 }
 
 void MainWindow::updateTeams()
@@ -262,7 +261,7 @@ void MainWindow::update()
   updateManager();
   updatePOV();
   updateTeams();
-  video_widget->updateContent(manager.getCalibratedImages(now), manager.getField(), status);
+  video_widget->updateContent(manager->getCalibratedImages(now), manager->getField(), status);
 }
 
 void MainWindow::clickPause()

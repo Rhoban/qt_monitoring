@@ -23,7 +23,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  MainWindow(const std::string& manager_path);
+  MainWindow(std::unique_ptr<hl_monitoring::MonitoringManager> manager);
 
 public slots:
   /**
@@ -43,7 +43,7 @@ public slots:
 
 private:
   hl_communication::MessageManager::Status status;
-  hl_monitoring::MonitoringManager manager;
+  std::unique_ptr<hl_monitoring::MonitoringManager> manager;
 
   VideoWidget* video_widget;
 
