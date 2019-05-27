@@ -16,7 +16,9 @@ int main(int argc, char* argv[])
   TCLAP::CmdLine cmd("qt_monitor", ' ', "0.1");
   TCLAP::ValueArg<std::string> manager_arg("m", "manager", "Manager", false, "manager.json", "manager");
   TCLAP::SwitchArg default_live_arg("l", "live", "Default live mode");
-  cmd.xorAdd(manager_arg, default_live_arg);
+  TCLAP::SwitchArg default_replay_arg("r", "replay", "Default replay mode");
+  std::vector<TCLAP::Arg*> mandatory_args = { &manager_arg, &default_live_arg, &default_replay_arg };
+  cmd.xorAdd(mandatory_args);
   cmd.parse(argc, argv);
 
   QApplication app(argc, argv);
@@ -26,6 +28,10 @@ int main(int argc, char* argv[])
   if (default_live_arg.getValue())
   {
     manager->autoLiveStart();
+  }
+  else if (default_replay_arg.getValue())
+  {
+    manager->loadConfig("replay.json");
   }
   else
   {
