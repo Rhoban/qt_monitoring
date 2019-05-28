@@ -1,6 +1,7 @@
 #include <qt_monitoring/video_widget.h>
 
 #include <hl_communication/utils.h>
+#include <hl_communication/game_controller_utils.h>
 #include <qt_monitoring/utils.h>
 
 #include <opencv2/imgproc.hpp>
@@ -71,8 +72,9 @@ void VideoWidget::updateContent(const std::map<std::string, CalibratedImage>& im
       auto& firstTeam = gc_msg.teams().Get(0);
       if (firstTeam.has_team_color())
       {
-        goals_disposition = firstTeam.team_color() ? TopViewDrawer::GoalsDisposition::GoalsBlueLeft :
-                                                     TopViewDrawer::GoalsDisposition::GoalsBlueRight;
+        goals_disposition = (firstTeam.team_color() == hl_communication::getBlueTeamColor()) ?
+                                TopViewDrawer::GoalsDisposition::GoalsBlueLeft :
+                                TopViewDrawer::GoalsDisposition::GoalsBlueRight;
       }
     }
     top_view_drawer.setGoalsDisposition(goals_disposition);
