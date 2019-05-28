@@ -29,6 +29,7 @@ set(DELEGATE_LIBRARIES
 catkin_package(
   INCLUDE_DIRS ${DELEGATE_INCLUDE_DIRS}
   LIBRARIES ${PROJECT_NAME} ${DELEGATE_LIBRARIES}
+  CATKIN_DEPENDS hl_monitoring rhoban_team_play
   )
 
 include_directories(

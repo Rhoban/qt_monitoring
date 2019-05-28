@@ -4,7 +4,9 @@
 #include <qt_monitoring/utils.h>
 
 #include <opencv2/imgproc.hpp>
+#include <QTimer>
 
+using namespace hl_communication;
 using namespace hl_monitoring;
 
 namespace qt_monitoring
@@ -14,25 +16,49 @@ class VideoGridLayout : public QGridLayout
 public:
   QSize minimumSize() const override
   {
-    return QSize(1200, 800);
+    return QSize(1000, 900);
   }
   QSize maximumSize() const override
   {
-    return QSize(1200, 800);
+    return QSize(1000, 900);
   }
 };
 
-VideoWidget::VideoWidget()
+VideoWidget::VideoWidget(std::unique_ptr<hl_monitoring::MonitoringManager> manager_, QTimer* timer_)
+  : manager(std::move(manager_)), now(0), memory_duration(2 * 1000 * 1000), old_slider_value(0), timer(timer_)
 {
   layout = new VideoGridLayout;
   stream_selector = new StreamSelector();
 
   addSource("TopView");
+  if (!manager->isLive())
+  {
+    slider_value_label = new QLabel(this);
+    slider_value_label->setText("0");
+    slider = new QSlider(Qt::Horizontal, this);
+    buttonPause = new QPushButton("PLAY");
+    buttonFastForward = new QPushButton("x2");
+    connect(buttonPause, SIGNAL(released()), this, SLOT(clickPause()));
+    connect(buttonFastForward, SIGNAL(released()), this, SLOT(clickFastForward()));
+  }
+
+  playing = manager->isLive();
+  speed_ratio = 1;
+  updateAvailableSources(manager->getImageProvidersNames());
   setLayout(layout);
 }
 
 VideoWidget::~VideoWidget()
 {
+}
+
+void VideoWidget::update()
+{
+  updateLayout();
+  updateTimeBoundaries();
+  updateTime();
+  updateManager();
+  updateContent(manager->getCalibratedImages(now), manager->getField(), status);
 }
 
 void VideoWidget::updateFocus(int team_focus, int player_focus)
@@ -44,7 +70,6 @@ void VideoWidget::updateFocus(int team_focus, int player_focus)
 void VideoWidget::updateContent(const std::map<std::string, CalibratedImage>& images, const Field& field,
                                 const hl_communication::MessageManager::Status& status)
 {
-  updateLayout();
   for (const auto& entry : images)
   {
     const std::string& source_name = entry.first;
@@ -94,6 +119,26 @@ void VideoWidget::updateAvailableSources(const std::set<std::string>& stream_nam
 const StreamSelector& VideoWidget::getStreamSelector() const
 {
   return *stream_selector;
+}
+
+const hl_monitoring::MonitoringManager& VideoWidget::getManager() const
+{
+  return *manager;
+}
+
+const hl_communication::MessageManager::Status& VideoWidget::getStatus() const
+{
+  return status;
+}
+
+CalibratedImage VideoWidget::getCalibratedImage(const std::string& provider_name, uint64_t time_stamp)
+{
+  return manager->getCalibratedImage(provider_name, time_stamp);
+}
+
+uint64_t VideoWidget::getTS() const
+{
+  return now;
 }
 
 void VideoWidget::addSource(const std::string& source_name)
@@ -157,6 +202,126 @@ void VideoWidget::updateLayout()
       }
     }
   }
+  if (!manager->isLive())
+  {
+    layout->addWidget(slider, row++, 0, 1, nb_cols);
+    layout->addWidget(slider_value_label, row++, 0, 1, 1);
+    layout->addWidget(buttonPause, row++, 0, 1, 1);
+    layout->addWidget(buttonFastForward, row++, 0, 1, 1);
+  }
+}
+
+void VideoWidget::updateTimeBoundaries()
+{
+  initial_time = manager->getMessageManager().getStart();
+  end_time = manager->getMessageManager().getEnd();
+
+  for (const std::string& source_name : manager->getImageProvidersNames())
+  {
+    if (source_name == "TopView")
+      continue;
+    initial_time = std::min(initial_time, manager->getImageProvider(source_name).getStart());
+    end_time = std::max(end_time, manager->getImageProvider(source_name).getEnd());
+  }
+
+  if (!manager->isLive())
+  {
+    // Slider has 1 sec step, time_stamps are micro_seconds
+    slider->setRange(0, (end_time - initial_time) / std::pow(10, 6));
+  }
+
+  now = std::max(std::min(now, end_time), initial_time);
+}
+
+void VideoWidget::updateTime()
+{
+  // If slider has moved: update 'now' based on it
+  if (!manager->isLive() && slider->value() != old_slider_value)
+  {
+    now = initial_time + 1000 * 1000 * slider->value();
+  }
+
+  if (playing)
+  {
+    if (manager->isLive())
+    {
+      // Dirty hack: since live image_providers are not supporting request of frames in the past, always require a frame
+      // from the future
+      double anticipation_ms = 50;
+      now = getTimeStamp() + anticipation_ms * 1000;
+    }
+    else
+    {
+      now += timer->interval() * 1000 * speed_ratio;
+    }
+  }
+  if (!manager->isLive())
+  {
+    old_slider_value = (now - initial_time) / (1000 * 1000);
+    slider->setValue(old_slider_value);
+  }
+  char str[30];
+  if (!manager->isLive())
+  {
+    if (now >= end_time && end_time != 0)
+    {
+      now = end_time;
+      sprintf(str, "end of video");
+    }
+    else
+    {
+      uint64_t elapsed_since_start = now - initial_time;
+      uint64_t elapsed_ms = elapsed_since_start / 1000;
+      uint64_t elapsed_seconds = elapsed_ms / 1000;
+      uint64_t elapsed_minutes = elapsed_seconds / 60;
+      elapsed_ms = elapsed_ms % 1000;
+      elapsed_seconds = elapsed_seconds % 60;
+
+      sprintf(str, "%.02lu:%.02lu:%.03lu\n", elapsed_minutes, elapsed_seconds, elapsed_ms);
+    }
+    slider_value_label->setText(str);
+  }
+}
+
+void VideoWidget::setPose(const std::string& provider_name, int frame_idx, const Pose3D& pose)
+{
+  manager->setPose(provider_name, frame_idx, pose);
+}
+
+void VideoWidget::updateManager()
+{
+  manager->update();
+  status = manager->getMessageManager().getStatus(now, memory_duration);
+}
+
+void VideoWidget::clickPause()
+{
+  playing = !playing;
+  if (playing)
+  {
+    this->buttonPause->setText("PAUSE");
+  }
+  else
+  {
+    this->buttonPause->setText("PLAY");
+  }
+}
+
+void VideoWidget::clickFastForward()
+{
+  speed_ratio *= 2;
+  // Maximal Speed
+  int max_speed = 16;
+  if (speed_ratio > max_speed)
+  {
+    speed_ratio = 1;
+  }
+  int next_speed = speed_ratio * 2;
+  if (next_speed > max_speed)
+  {
+    next_speed = 1;
+  }
+  this->buttonFastForward->setText(("x" + std::to_string(speed_ratio) + " -> x" + std::to_string(next_speed)).c_str());
 }
 
 }  // namespace qt_monitoring
