@@ -166,7 +166,7 @@ void MainWindow::updateTeams()
     auto& firstTeam = status.gc_message.teams().Get(0);
     if (firstTeam.has_team_color())
     {
-      QString redStyle = "background-color: #fad9d9; border-radius:5px; color: #971212";
+      QString redStyle = "background-color: #edd0f5; border-radius:5px; color: #9a1cb9";
       QString blueStyle = "background-color: #d9e4fa; border-radius:5px; color: #124e97";
 
       if (firstTeam.team_color() == hl_communication::getBlueTeamColor())
