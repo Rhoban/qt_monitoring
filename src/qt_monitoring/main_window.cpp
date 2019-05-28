@@ -4,6 +4,7 @@
 #include <qt_monitoring/utils.h>
 
 #include <hl_communication/utils.h>
+#include <hl_communication/game_controller_utils.h>
 
 #include <opencv2/imgproc.hpp>
 
@@ -67,6 +68,8 @@ MainWindow::MainWindow(std::unique_ptr<hl_monitoring::MonitoringManager> manager
   timer = new QTimer(this);
   connect(timer, SIGNAL(timeout()), this, SLOT(update()));
   timer->start(dt / 1000);
+
+  setStyleSheet("QMainWindow { background: white; }");
 }
 
 void MainWindow::updateSource()
@@ -104,8 +107,8 @@ void MainWindow::updateTime()
   {
     if (manager->isLive())
     {
-      // Dirty hack: since live image_providers are not supporting request of frames in the past, always require a frame
-      // from the future
+      // Dirty hack: since live image_providers are not supporting request of frames in the past, always require a
+      // frame from the future
       double anticipation_ms = 50;
       now = getTimeStamp() + anticipation_ms * 1000;
     }
@@ -156,6 +159,27 @@ void MainWindow::updateTeams()
   if (has_gc_message && nb_teams != 2)
   {
     throw std::logic_error(HL_DEBUG + "Invalid number of teams in gc_message");
+  }
+
+  if (has_gc_message)
+  {
+    auto& firstTeam = status.gc_message.teams().Get(0);
+    if (firstTeam.has_team_color())
+    {
+      QString blueStyle = "background-color: #f6b7b7; border-radius:5px; color: #971212";
+      QString redStyle = "background-color: #bad6f8; border-radius:5px; color: #124e97";
+
+      if (firstTeam.team_color() == hl_communication::getBlueTeamColor())
+      {
+        teams[0]->setStyleSheet(blueStyle);
+        teams[1]->setStyleSheet(redStyle);
+      }
+      else
+      {
+        teams[0]->setStyleSheet(redStyle);
+        teams[1]->setStyleSheet(blueStyle);
+      }
+    }
   }
 
   for (size_t idx = 0; idx < 2; idx++)

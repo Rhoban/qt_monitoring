@@ -34,6 +34,8 @@ public:
 
   uint32_t getTeamId() const;
 
+  void paintEvent(QPaintEvent* event);
+
 private:
   void updateTeamLabel();
 
