@@ -2,6 +2,7 @@
 
 #include <QLayout>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QWidget>
 
 #include <set>
@@ -28,7 +29,7 @@ public:
   //  void toggle(bool checked);
 
 private:
-  void addButton(const std::string& name, bool enabled = true);
+  void addCheckbox(const std::string& name, bool enabled = true);
 
   /**
    * Global layout of the widget
@@ -37,7 +38,7 @@ private:
   /**
    * Buttons used to control visibility of video streams
    */
-  std::map<std::string, QPushButton*> streams;
+  std::map<std::string, QCheckBox*> streams;
 };
 
 }  // namespace qt_monitoring
