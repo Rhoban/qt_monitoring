@@ -64,6 +64,19 @@ void VideoWidget::updateContent(const std::map<std::string, CalibratedImage>& im
 
   if (labels["TopView"].displayed)
   {
+    TopViewDrawer::GoalsDisposition goals_disposition = TopViewDrawer::GoalsDisposition::GoalsNeutral;
+    auto& gc_msg = status.gc_message;
+    if (gc_msg.teams_size() > 0)
+    {
+      auto& firstTeam = gc_msg.teams().Get(0);
+      if (firstTeam.has_team_color())
+      {
+        goals_disposition = firstTeam.team_color() ? TopViewDrawer::GoalsDisposition::GoalsBlueLeft :
+                                                     TopViewDrawer::GoalsDisposition::GoalsBlueRight;
+      }
+    }
+    top_view_drawer.setGoalsDisposition(goals_disposition);
+
     cv::Mat top_view_img = cv::Mat(top_view_drawer.getImg(field));
     team_drawer.drawTopView(field, top_view_drawer, status, &top_view_img);
     labels["TopView"].img = top_view_img;
