@@ -39,6 +39,9 @@ MainWindow::MainWindow(std::unique_ptr<hl_monitoring::MonitoringManager> manager
   layout->addWidget(pov_manager, 0, 1, 1, 1);
   layout->addWidget(video_widget, 1, 1, 1, 1);
 
+  teams[0]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+  teams[1]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+
   zoneCentral->setLayout(layout);
   setCentralWidget(zoneCentral);
 
