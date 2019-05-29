@@ -17,11 +17,11 @@ class VideoGridLayout : public QGridLayout
 public:
   QSize minimumSize() const override
   {
-    return QSize(1000, 900);
+    return QSize(1100, 950);
   }
   QSize maximumSize() const override
   {
-    return QSize(1000, 900);
+    return QSize(1100, 950);
   }
 };
 
@@ -206,7 +206,7 @@ void VideoWidget::updateLayout()
   {
     if (stream_selector->isActive(entry.first))
     {
-      layout->addWidget(entry.second.label, row, col, 1, 1);
+      layout->addWidget(entry.second.label, row, col, 1, 1, Qt::AlignCenter);
       entry.second.displayed = true;
       entry.second.label->setVisible(true);
       col++;
@@ -262,7 +262,7 @@ void VideoWidget::updateTime()
     {
       // Dirty hack: since live image_providers are not supporting request of frames in the past, always require a frame
       // from the future
-      double anticipation_ms = 50;
+      double anticipation_ms = 500;
       now = getTimeStamp() + anticipation_ms * 1000;
     }
     else

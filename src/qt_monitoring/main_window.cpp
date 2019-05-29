@@ -34,10 +34,10 @@ MainWindow::MainWindow(std::unique_ptr<hl_monitoring::MonitoringManager> manager
   teams.push_back(new TeamPanel());
 
   // TODO: update positions and make it easier to read
-  layout->addWidget(teams[0], 0, 0, 9, 1);
-  layout->addWidget(teams[1], 0, 5, 9, 1);
-  layout->addWidget(pov_manager, 0, 1, 1, 4);
-  layout->addWidget(video_widget, 1, 1, 6, 4);
+  layout->addWidget(teams[0], 0, 0, 2, 1);
+  layout->addWidget(teams[1], 0, 2, 2, 1);
+  layout->addWidget(pov_manager, 0, 1, 1, 1);
+  layout->addWidget(video_widget, 1, 1, 1, 1);
 
   zoneCentral->setLayout(layout);
   setCentralWidget(zoneCentral);

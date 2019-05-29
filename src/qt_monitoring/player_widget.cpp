@@ -11,9 +11,22 @@ using namespace rhoban_team_play;
 
 namespace qt_monitoring
 {
+class PlayerLayout : public QVBoxLayout
+{
+public:
+  QSize minimumSize() const override
+  {
+    return QSize(250, 100);
+  }
+  QSize maximumSize() const override
+  {
+    return QSize(250, 200);
+  }
+};
+
 PlayerWidget::PlayerWidget() : player_id(0), robot_name("robot")
 {
-  layout = new QVBoxLayout();
+  layout = new PlayerLayout();
   layout->setSpacing(0);
   layout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
   robot_label = new QLabel();
