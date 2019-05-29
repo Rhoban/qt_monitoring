@@ -1,6 +1,9 @@
 #include "team_panel.h"
 
 #include <qt_monitoring/globals.h>
+#include <QStyle>
+#include <QStyleOption>
+#include <QStylePainter>
 
 #include <iostream>
 
@@ -27,6 +30,7 @@ TeamPanel::TeamPanel() : team_id(0), score(0)
   internal_layout->setAlignment(Qt::AlignCenter | Qt::AlignTop);
   team_label = new QLabel();
   team_label->setFont(QFont("Arial", 18, 3, false));
+  team_label->setStyleSheet("font-weight: bold;");
   team_label->setAlignment(Qt::AlignCenter | Qt::AlignTop);
   text_log_label = new QLabel();
   text_log_label->setFont(QFont("Arial", 10, 3, false));
@@ -40,6 +44,7 @@ TeamPanel::TeamPanel() : team_id(0), score(0)
   internal_layout->addWidget(team_label, idx++, 0, 1, 1);
   for (auto& entry : robots_by_status)
   {
+    entry.second->setStyleSheet("font-weight:bold");
     internal_layout->addWidget(entry.second, idx++, 0, 1, 1);
   }
   internal_layout->addWidget(text_log_label, 0, 1, idx, 1);
@@ -75,9 +80,10 @@ void TeamPanel::treatMessages(const GCTeamMsg& team_msg, const std::vector<Robot
     {
       status = getRobotStatus(team_msg.robots(player_id - 1));
     }
-    else if (team_msg.robots_size() != 0) // Message received from GameController
+    else if (team_msg.robots_size() != 0)  // Message received from GameController
     {
-      std::cerr << "Received message with invalid player id: " << player_id  << "team_msg # robot" << team_msg.robots_size() << std::endl;
+      std::cerr << "Received message with invalid player id: " << player_id << "team_msg # robot"
+                << team_msg.robots_size() << std::endl;
     }
     messages_by_status[status].push_back(robot_msg);
   }
@@ -127,6 +133,16 @@ void TeamPanel::updateTeamLabel()
   std::string team_name = Globals::team_manager.getTeamName(team_id);
   std::string new_text = std::to_string(score) + " : " + team_name;
   team_label->setText(new_text.c_str());
+}
+
+void TeamPanel::paintEvent(QPaintEvent* event)
+{
+  QStyleOption opt;
+  opt.init(this);
+  QPainter p(this);
+  style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+
+  QWidget::paintEvent(event);
 }
 
 }  // namespace qt_monitoring

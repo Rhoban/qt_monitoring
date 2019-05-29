@@ -8,7 +8,7 @@ StreamSelector::StreamSelector()
 {
   layout = new QHBoxLayout();
 
-  addButton("TopView");
+  addCheckbox("TopView");
   this->setLayout(layout);
 }
 
@@ -22,7 +22,7 @@ void StreamSelector::updateAvailableSources(const std::set<std::string>& stream_
   {
     if (streams.count(stream_name) == 0)
     {
-      addButton(stream_name, false);
+      addCheckbox(stream_name, false);
     }
   }
 }
@@ -45,12 +45,11 @@ bool StreamSelector::isActive(const std::string& stream_name) const
   return streams.at(stream_name)->isChecked();
 }
 
-void StreamSelector::addButton(const std::string& name, bool enabled)
+void StreamSelector::addCheckbox(const std::string& name, bool enabled)
 {
   if (streams.count(name) > 0)
     throw std::logic_error(HL_DEBUG + "duplicated stream name: " + name);
-  streams[name] = new QPushButton(name.c_str());
-  streams[name]->setCheckable(true);
+  streams[name] = new QCheckBox(name.c_str());
   streams[name]->setChecked(enabled);
   layout->addWidget(streams[name]);
 }

@@ -4,6 +4,7 @@
 #include <qt_monitoring/utils.h>
 
 #include <hl_communication/utils.h>
+#include <hl_communication/game_controller_utils.h>
 
 #include <opencv2/imgproc.hpp>
 
@@ -43,6 +44,7 @@ MainWindow::MainWindow(std::unique_ptr<hl_monitoring::MonitoringManager> manager
 
   timer->start(30);
   connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+  setStyleSheet("QMainWindow { background: white; }");
   update();
 }
 
@@ -59,6 +61,27 @@ void MainWindow::updateTeams()
   if (has_gc_message && nb_teams != 2)
   {
     throw std::logic_error(HL_DEBUG + "Invalid number of teams in gc_message");
+  }
+
+  if (has_gc_message)
+  {
+    auto& firstTeam = getStatus().gc_message.teams().Get(0);
+    if (firstTeam.has_team_color())
+    {
+      QString redStyle = "background-color: #f6e8fa; border-radius:5px; color: #9a1cb9";
+      QString blueStyle = "background-color: #e8f0fa; border-radius:5px; color: #124e97";
+
+      if (firstTeam.team_color() == hl_communication::getBlueTeamColor())
+      {
+        teams[0]->setStyleSheet(blueStyle);
+        teams[1]->setStyleSheet(redStyle);
+      }
+      else
+      {
+        teams[0]->setStyleSheet(redStyle);
+        teams[1]->setStyleSheet(blueStyle);
+      }
+    }
   }
 
   for (size_t idx = 0; idx < 2; idx++)

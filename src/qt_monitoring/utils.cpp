@@ -2,7 +2,6 @@
 
 namespace qt_monitoring
 {
-
 QImage cvToQImage(const cv::Mat& mat)
 {
   return QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888);
@@ -16,8 +15,8 @@ void updateStyle(QLabel* label, bool critical)
   }
   else
   {
-    label->setStyleSheet("QLabel { color : black; }");
+    label->setStyleSheet("QLabel {  }");
   }
 }
 
-}
+}  // namespace qt_monitoring
