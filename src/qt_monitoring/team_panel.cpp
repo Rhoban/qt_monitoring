@@ -32,6 +32,7 @@ TeamPanel::TeamPanel() : team_id(0), score(0)
   team_label->setFont(QFont("Arial", 18, 3, false));
   team_label->setStyleSheet("font-weight: bold;");
   team_label->setAlignment(Qt::AlignCenter | Qt::AlignTop);
+  team_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   text_log_label = new QLabel();
   text_log_label->setFont(QFont("Arial", 10, 3, false));
   text_log_label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
