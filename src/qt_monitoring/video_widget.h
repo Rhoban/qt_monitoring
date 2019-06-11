@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hl_monitoring/camera.pb.h>
+#include <hl_communication/camera.pb.h>
 #include <hl_monitoring/calibrated_image.h>
 #include <hl_monitoring/field.h>
 #include <hl_monitoring/drawers/team_drawer.h>
@@ -44,7 +44,7 @@ public:
    */
   uint64_t getTS() const;
 
-  void setPose(const std::string& provider_name, int frame_idx, const hl_monitoring::Pose3D& pose);
+  void setPose(const std::string& provider_name, int frame_idx, const hl_communication::Pose3D& pose);
 
 public slots:
   void clickPause();

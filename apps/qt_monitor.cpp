@@ -1,6 +1,6 @@
 #include <qt_monitoring/main_window.h>
 
-#include <hl_monitoring/utils.h>
+#include <hl_communication/utils.h>
 
 #include <tclap/CmdLine.h>
 
