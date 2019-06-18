@@ -263,7 +263,7 @@ void VideoWidget::updateTime()
       // Dirty hack: since live image_providers are not supporting request of frames in the past, always require a frame
       // from the future
       double anticipation_ms = 500;
-      now = getTimeStamp() + anticipation_ms * 1000;
+      now = getUTCTimeStamp() + anticipation_ms * 1000;
     }
     else
     {
