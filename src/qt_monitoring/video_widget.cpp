@@ -26,7 +26,7 @@ public:
 };
 
 VideoWidget::VideoWidget(std::unique_ptr<hl_monitoring::MonitoringManager> manager_, QTimer* timer_)
-  : manager(std::move(manager_)), now(0), memory_duration(2 * 1000 * 1000), old_slider_value(0), timer(timer_)
+  : manager(std::move(manager_)), now(0), memory_duration(5 * 1000 * 1000), old_slider_value(0), timer(timer_)
 {
   layout = new VideoGridLayout;
   stream_selector = new StreamSelector();
