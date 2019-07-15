@@ -66,7 +66,7 @@ PlayerWidget::~PlayerWidget()
 
 void PlayerWidget::treatMessage(const hl_communication::RobotMsg& robot_msg)
 {
-  updateRobotLabel(robot_msg.robot_id());
+  updateRobotLabel(robot_msg.robot_id(), robot_msg.has_captain());
   if (!robot_msg.has_free_field())
   {
     throw std::logic_error(HL_DEBUG + "no free field (Rhoban standard)");
@@ -89,11 +89,13 @@ void PlayerWidget::treatMessage(const hl_communication::RobotMsg& robot_msg)
   updateStyle(hardware_label, extra.hardware_warnings().size() > 0);
 };
 
-void PlayerWidget::updateRobotLabel(const hl_communication::RobotIdentifier& identifier)
+void PlayerWidget::updateRobotLabel(const hl_communication::RobotIdentifier& identifier, bool is_captain)
 {
   uint32_t team_id = identifier.team_id();
   uint32_t player_id = identifier.robot_id();
   std::string robot_text = Globals::team_manager.getPlayerName(team_id, player_id);
+  if (is_captain)
+    robot_text += " (captain)";
   robot_label->setText(robot_text.c_str());
 }
 

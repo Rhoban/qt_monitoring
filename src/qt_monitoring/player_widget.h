@@ -20,7 +20,7 @@ public:
   void treatMessage(const hl_communication::RobotMsg& robot_msg);
 
 private:
-  void updateRobotLabel(const hl_communication::RobotIdentifier& identifier);
+  void updateRobotLabel(const hl_communication::RobotIdentifier& identifier, bool is_captain);
   void updateBallLabel(const rhoban_team_play::PerceptionExtra& extra);
   void updateFieldLabel(const rhoban_team_play::PerceptionExtra& extra);
 
