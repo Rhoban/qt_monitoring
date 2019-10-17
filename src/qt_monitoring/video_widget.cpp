@@ -339,4 +339,14 @@ void VideoWidget::clickFastForward()
   this->buttonFastForward->setText(("x" + std::to_string(speed_ratio) + " -> x" + std::to_string(next_speed)).c_str());
 }
 
+std::set<hl_communication::MessageManager::SourceIdentifier> VideoWidget::getInterferingGCSource()
+{
+  return manager->getMessageManager().getInterferingGCSource(getTS(), getTS() - 3);
+}
+
+std::set<std::string> VideoWidget::getActiveSources()
+{
+  return stream_selector->getActiveSources();
+}
+
 }  // namespace qt_monitoring

@@ -3,6 +3,7 @@
 #include <qt_monitoring/pov_manager.h>
 #include <qt_monitoring/team_panel.h>
 #include <qt_monitoring/video_widget.h>
+#include <qt_monitoring/tools_bar.h>
 
 #include <hl_communication/message_manager.h>
 
@@ -29,9 +30,12 @@ public slots:
   void update();
   void updateTeams();
   void updatePOV();
+  void updateToolsBar();
 
 private:
   VideoWidget* video_widget;
+
+  ToolsBar* tools_bar;
 
   /**
    * Timer ticking updates of the main_window
@@ -45,6 +49,8 @@ private:
 
   POVManager* pov_manager;
   std::vector<TeamPanel*> teams;
+
+  std::unique_ptr<hl_monitoring::MonitoringManager> manager;
 
 protected:
   void resizeEvent(QResizeEvent* event) override;

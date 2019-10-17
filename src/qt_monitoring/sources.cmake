@@ -6,6 +6,8 @@ set(SOURCES
   pov_manager.cpp
   stream_selector.cpp
   team_panel.cpp
+  tools_bar.cpp
+  calib_tool.cpp
   utils.cpp
   video_widget.cpp
 	)

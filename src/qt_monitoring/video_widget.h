@@ -46,6 +46,10 @@ public:
 
   void setPose(const std::string& provider_name, int frame_idx, const hl_communication::Pose3D& pose);
 
+  std::set<hl_communication::MessageManager::SourceIdentifier> getInterferingGCSource();
+
+  std::set<std::string> getActiveSources();
+
 public slots:
   void clickPause();
   void clickFastForward();

@@ -30,6 +30,8 @@ MainWindow::MainWindow(std::unique_ptr<hl_monitoring::MonitoringManager> manager
 
   pov_manager = new POVManager();
 
+  tools_bar = new ToolsBar(std::move(manager));
+
   teams.push_back(new TeamPanel());
   teams.push_back(new TeamPanel());
 
@@ -38,6 +40,11 @@ MainWindow::MainWindow(std::unique_ptr<hl_monitoring::MonitoringManager> manager
   layout->addWidget(teams[1], 0, 2, 2, 1);
   layout->addWidget(pov_manager, 0, 1, 1, 1);
   layout->addWidget(video_widget, 1, 1, 1, 1);
+
+  /*
+  layout->addWidget(tools_bar, 0, 1, 1, 1);
+  layout->addWidget(pov_manager, 1, 1, 1, 1);
+  layout->addWidget(video_widget, 2, 1, 1, 1);*/
 
   teams[0]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   teams[1]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -183,11 +190,18 @@ void MainWindow::updatePOV()
   }
 }
 
+void MainWindow::updateToolsBar()
+{
+  tools_bar->updateGCSource(video_widget->getTS(), video_widget->getInterferingGCSource());
+  tools_bar->updateCameraSource(video_widget->getActiveSources());
+}
+
 void MainWindow::update()
 {
   updatePOV();
   updateTeams();
   video_widget->update();
+  updateToolsBar();
 }
 
 void MainWindow::resizeEvent(QResizeEvent* event)
