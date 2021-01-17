@@ -112,7 +112,7 @@ void VideoWidget::updateContent(const std::map<std::string, CalibratedImage>& im
   {
     if (!entry.second.img.empty())
     {
-      cv::cvtColor(entry.second.img, entry.second.img, CV_BGR2RGB);
+      cv::cvtColor(entry.second.img, entry.second.img, cv::COLOR_BGR2RGB);
       QPixmap camera_pixmap = QPixmap::fromImage(cvToQImage(entry.second.img));
       entry.second.label->setPixmap(camera_pixmap.scaled(img_size.width, img_size.height, Qt::KeepAspectRatio));
     }
