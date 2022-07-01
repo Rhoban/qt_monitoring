@@ -7,36 +7,10 @@ set(CMAKE_AUTOOUIC ON)
 
 find_package(OpenCV REQUIRED)
 
-find_package(catkin REQUIRED COMPONENTS
-  hl_monitoring
-  rhoban_team_play
-  )
-
 find_package(Qt5 REQUIRED COMPONENTS MultimediaWidgets)
 
 #Enable C++17
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++17")
-
-set(DELEGATE_INCLUDE_DIRS
-  src
-  ${OpenCV_DIR}
-)
-
-set(DELEGATE_LIBRARIES
-  ${OpenCV_LIBS}
-  )
-
-catkin_package(
-  INCLUDE_DIRS ${DELEGATE_INCLUDE_DIRS}
-  LIBRARIES ${PROJECT_NAME} ${DELEGATE_LIBRARIES}
-  CATKIN_DEPENDS hl_monitoring rhoban_team_play
-  )
-
-include_directories(
-  ${DELEGATE_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
-  ${Qt5MultimediaWidgets_INCLUDE_DIRS}
-  )
 
 set(SOURCES_DIRECTORIES
   src/qt_monitoring
@@ -52,11 +26,13 @@ foreach (DIRECTORY ${SOURCES_DIRECTORIES})
   set (ALL_SOURCES ${ALL_SOURCES} ${PREFIXED_SOURCES})
 endforeach (DIRECTORY)
 
-set(LINKED_LIBRARIES ${catkin_LIBRARIES} ${DELEGATE_LIBRARIES})
-
 add_library (${PROJECT_NAME} SHARED ${ALL_SOURCES})
 qt5_use_modules(${PROJECT_NAME} MultimediaWidgets)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} hl_monitoring rhoban_team_play)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/src
+)
 
 add_executable(qt_monitor apps/qt_monitor.cpp)
-target_link_libraries(qt_monitor ${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(qt_monitor ${PROJECT_NAME})
